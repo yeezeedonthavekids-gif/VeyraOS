@@ -46,8 +46,10 @@ fi
 # 4. Fresh package keyring for this installation (never copied from the ISO) ----
 log "initialising the package signing keyring"
 rm -rf /etc/pacman.d/gnupg
-if pacman-key --init >/dev/null 2>&1 && pacman-key --populate artix archlinux >/dev/null 2>&1; then
-    log "keyring ready"
+keyrings=()
+for k in artix archlinux; do [[ -f /usr/share/pacman/keyrings/$k.gpg ]] && keyrings+=("$k"); done
+if pacman-key --init >/dev/null 2>&1 && pacman-key --populate "${keyrings[@]}" >/dev/null 2>&1; then
+    log "keyring ready (${keyrings[*]})"
 else
     log "WARNING: keyring initialisation failed; run 'sudo pacman-key --init && sudo pacman-key --populate' later"
 fi

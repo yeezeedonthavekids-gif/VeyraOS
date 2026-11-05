@@ -16,8 +16,13 @@ start() {
 	# Runs in the background (takes a few seconds); the Software Center and
 	# installer wait for /run/veyra/keyring-ready.
 	(
+		rings=""
+		for k in artix archlinux; do
+			[ -f "/usr/share/pacman/keyrings/$k.gpg" ] && rings="$rings $k"
+		done
+		# shellcheck disable=SC2086  # word splitting intended
 		pacman-key --init >/dev/null 2>&1 \
-		&& pacman-key --populate artix archlinux >/dev/null 2>&1 \
+		&& pacman-key --populate $rings >/dev/null 2>&1 \
 		&& touch /run/veyra/keyring-ready
 	) &
 	# Unique machine identity for this boot
