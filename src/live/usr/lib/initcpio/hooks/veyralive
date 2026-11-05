@@ -144,6 +144,8 @@ veyra_mount_handler() {
     mount -t overlay -o "lowerdir=$_vl_run/sfs,upperdir=$_vl_run/cow/upper,workdir=$_vl_run/cow/work" \
         veyra-root "$_vl_newroot" || { _vl_fail "cannot mount the overlay root"; return 1; }
 
-    # Marker for the booted system (also used by the installer).
+    # Markers for the booted system: the medium, and the root image the
+    # installer unpacks (on the medium, or in RAM with copytoram).
     echo "$_vl_dev" > "$_vl_run/device"
+    ln -sf "$_vl_img" "$_vl_run/rootfs.sfs"
 }

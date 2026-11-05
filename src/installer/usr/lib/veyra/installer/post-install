@@ -1,0 +1,75 @@
+#!/bin/bash
+# VeyraOS installer post-install step. Runs INSIDE the new system (chroot)
+# via Calamares shellprocess, after users/services and before the live
+# packages are removed and the initramfs/bootloader are generated.
+# Every step is idempotent and logs what it does.
+set -uo pipefail
+export PATH=/usr/bin:/usr/sbin:/bin:/sbin
+log() { echo "[veyra-post] $*"; }
+fail=0
+
+# 1. Remove live-medium-only settings ------------------------------------------
+log "removing live session settings"
+rm -f /etc/sudoers.d/10-veyra-live /etc/sddm.conf.d/20-veyra-live.conf
+
+# 2. OpenRC reads hostname/keymap from /etc/conf.d -----------------------------
+if [[ -s /etc/hostname ]]; then
+    h=$(tr -d '[:space:]' < /etc/hostname)
+    echo "hostname=\"$h\"" > /etc/conf.d/hostname
+    log "hostname: $h"
+fi
+if [[ -f /etc/vconsole.conf ]]; then
+    km=$(sed -n 's/^KEYMAP=//p' /etc/vconsole.conf | tr -d '"')
+    if [[ -n $km ]]; then
+        sed -i "s/^keymap=.*/keymap=\"$km\"/" /etc/conf.d/keymaps
+        log "console keymap: $km"
+    fi
+fi
+# Plasma keyboard layout default for all users (from the X11 config Calamares wrote)
+kb=/etc/X11/xorg.conf.d/00-keyboard.conf
+if [[ -f $kb ]]; then
+    layout=$(sed -n 's/.*Option[[:space:]]*"XkbLayout"[[:space:]]*"\([^"]*\)".*/\1/p' "$kb")
+    variant=$(sed -n 's/.*Option[[:space:]]*"XkbVariant"[[:space:]]*"\([^"]*\)".*/\1/p' "$kb")
+    if [[ -n $layout && $layout != us ]] || [[ -n $variant ]]; then
+        install -d /etc/xdg
+        { echo "[Layout]"; echo "Use=true"; echo "LayoutList=$layout"; echo "VariantList=$variant"; } > /etc/xdg/kxkbrc
+        log "desktop keyboard layout: $layout${variant:+ ($variant)}"
+    fi
+fi
+
+# 3. Clock: Windows keeps the hardware clock in local time ---------------------
+if command -v os-prober >/dev/null && os-prober 2>/dev/null | grep -qi windows; then
+    sed -i 's/^clock=.*/clock="local"/' /etc/conf.d/hwclock 2>/dev/null || echo 'clock="local"' > /etc/conf.d/hwclock
+    log "Windows found: hardware clock set to local time (avoids wrong clock in Windows)"
+fi
+
+# 4. Fresh package keyring for this installation (never copied from the ISO) ----
+log "initialising the package signing keyring"
+rm -rf /etc/pacman.d/gnupg
+if pacman-key --init >/dev/null 2>&1 && pacman-key --populate artix archlinux >/dev/null 2>&1; then
+    log "keyring ready"
+else
+    log "WARNING: keyring initialisation failed; run 'sudo pacman-key --init && sudo pacman-key --populate' later"
+fi
+
+# 5. Graphics drivers: keep NVIDIA only where it is supported -------------------
+log "configuring graphics drivers"
+/usr/lib/veyra/nvidia-setup auto || { log "WARNING: nvidia-setup reported a problem"; fail=1; }
+
+# 6. Security defaults for user homes --------------------------------------------
+for d in /home/*; do
+    [[ -d $d ]] && chmod 700 "$d"
+done
+sed -i 's/^#\?HOME_MODE.*/HOME_MODE\t0700/' /etc/login.defs 2>/dev/null || true
+
+# 7. Text-mode (rescue) runlevel mirrors the final default runlevel -------------
+/usr/lib/veyra/make-text-runlevel || true
+
+# 8. Branding / identity ------------------------------------------------------------
+/usr/lib/veyra/write-os-release || true
+if command -v plymouth-set-default-theme >/dev/null; then
+    plymouth-set-default-theme veyra 2>/dev/null || true
+fi
+
+log "done"
+exit $fail

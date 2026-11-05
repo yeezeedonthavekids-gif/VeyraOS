@@ -1,0 +1,17 @@
+# Maintainer: VeyraOS Project
+# Sources live in src/ of the VeyraOS repository; build/build-iso.sh exports
+# VEYRA_SRC. Building by hand: VEYRA_SRC=$PWD/../../src makepkg -d
+pkgname=veyra-installer
+pkgver=2026.11
+pkgrel=1
+pkgdesc="VeyraOS graphical installer configuration (Calamares) and post-install scripts. Live medium only."
+arch=('any')
+url="https://github.com/yeezeedonthavekids-gif/veyraos"
+license=('GPL-3.0-or-later' 'CC-BY-SA-4.0')
+depends=('calamares' 'os-prober' 'veyra-system' 'veyra-nvidia')
+
+package() {
+    local s="${VEYRA_SRC:-$startdir/../../src}/installer"
+    cp -r --no-preserve=ownership "$s/." "$pkgdir/"
+    chmod 755 "$pkgdir/usr/bin/veyra-install" "$pkgdir/usr/lib/veyra/installer/post-install"
+}

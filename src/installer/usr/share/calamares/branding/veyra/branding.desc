@@ -1,0 +1,40 @@
+---
+componentName: veyra
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 1024px,700px
+windowPlacement: center
+sidebar: widget
+navigation: widget
+
+strings:
+    productName:         "VeyraOS"
+    shortProductName:    "VeyraOS"
+    version:             "2026.11"
+    shortVersion:        "2026.11"
+    versionedName:       "VeyraOS 2026.11 (Aurora)"
+    shortVersionedName:  "VeyraOS 2026.11"
+    bootloaderEntryName: "VeyraOS"
+    productUrl:          "https://github.com/yeezeedonthavekids-gif/veyraos"
+    supportUrl:          "https://github.com/yeezeedonthavekids-gif/veyraos/issues"
+    knownIssuesUrl:      "https://github.com/yeezeedonthavekids-gif/veyraos/blob/main/docs/KNOWN-ISSUES.md"
+    releaseNotesUrl:     "https://github.com/yeezeedonthavekids-gif/veyraos/blob/main/docs/RELEASE-NOTES.md"
+
+images:
+    productBanner:       "banner.png"
+    productIcon:         "icon.png"
+    productLogo:         "logo.png"
+    productWelcome:      "welcome.jpg"
+
+style:
+    SidebarBackground:        "#14141C"
+    SidebarText:              "#E6E7F2"
+    SidebarTextCurrent:       "#FFFFFF"
+    SidebarBackgroundCurrent: "#6B4EFF"
+
+slideshow:     "show.qml"
+slideshowAPI:  2
+
+uploadServer:
+    type: "none"

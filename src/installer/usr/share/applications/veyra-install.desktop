@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Install VeyraOS
+GenericName=System Installer
+Comment=Install VeyraOS on this computer
+Exec=veyra-install
+Icon=veyraos
+Terminal=false
+Categories=System;
+Keywords=install;installer;calamares;setup;

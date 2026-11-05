@@ -1,0 +1,10 @@
+#!/bin/sh
+# Start the VeyraOS installer (Calamares) with administrator rights.
+# On the live medium the live user has passwordless sudo; the display
+# environment is passed through so Calamares can open its window.
+if [ ! -e /run/veyra/sfs ]; then
+    echo "veyra-install: this is not the VeyraOS live system" >&2
+    exit 1
+fi
+exec sudo --preserve-env=DISPLAY,WAYLAND_DISPLAY,XDG_RUNTIME_DIR,XAUTHORITY,XDG_SESSION_TYPE,QT_QPA_PLATFORM,LANG,LC_ALL \
+    calamares -D 6 "$@"

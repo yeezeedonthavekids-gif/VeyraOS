@@ -1,0 +1,24 @@
+#!/bin/bash
+# Applies VeyraOS GRUB defaults to /etc/default/grub (idempotent). Used by the
+# installer and safe to re-run: sudo /usr/lib/veyra/grub-defaults && sudo grub-mkconfig -o /boot/grub/grub.cfg
+set -euo pipefail
+f=/etc/default/grub
+[[ -f $f ]] || exit 0
+setkey() { # setkey KEY VALUE (quoted value)
+    if grep -qE "^#?\s*$1=" "$f"; then
+        sed -i -E "s|^#?\s*$1=.*|$1=\"$2\"|" "$f"
+    else
+        printf '%s="%s"\n' "$1" "$2" >> "$f"
+    fi
+}
+[[ -f /usr/share/grub/themes/veyra/theme.txt ]] && setkey GRUB_THEME /usr/share/grub/themes/veyra/theme.txt
+# Detect Windows and other systems for the boot menu (disabled by default since GRUB 2.06)
+setkey GRUB_DISABLE_OS_PROBER false
+# Native resolution on UEFI; sensible modes on legacy BIOS
+setkey GRUB_GFXMODE "1920x1080,1280x720,auto"
+setkey GRUB_GFXPAYLOAD_LINUX keep
+setkey GRUB_DISTRIBUTOR VeyraOS
+# Not "saved": GRUB cannot write its environment block on btrfs (the
+# default filesystem), which would print an error at every boot.
+setkey GRUB_DEFAULT 0
+exit 0
