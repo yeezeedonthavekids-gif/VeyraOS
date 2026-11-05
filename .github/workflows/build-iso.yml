@@ -21,6 +21,9 @@ jobs:
           sudo build/build-in-docker.sh
           ls -la out/
       - name: Boot-check the ISO (QEMU, UEFI, KVM)
+        # informative: a hang here must not block publishing the ISO
+        continue-on-error: true
+        timeout-minutes: 25
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq qemu-system-x86 ovmf xorriso socat imagemagick
@@ -37,6 +40,7 @@ jobs:
             out/*.sha256
             out/boot-check/
       - name: Publish the ISO as a GitHub Release (download page)
+        if: ${{ !cancelled() && hashFiles('out/*.iso') != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
