@@ -19,6 +19,8 @@ jobs:
       - name: Build the ISO in an Artix container
         run: |
           sudo build/build-in-docker.sh
+          # the container writes as root; later steps run as the runner user
+          sudo chown -R "$(id -u):$(id -g)" out
           ls -la out/
       - name: Boot-check the ISO (QEMU, UEFI, KVM)
         # informative: a hang here must not block publishing the ISO
