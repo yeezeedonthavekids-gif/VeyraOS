@@ -206,6 +206,9 @@ stage_verify() {
     for p in systemd systemd-sysvcompat systemd-libs; do
         if pacman --root "$ROOT" -Q "$p" >/dev/null 2>&1; then
             warn "POLICY VIOLATION: package '$p' is installed"; fail=1
+            pacman --root "$ROOT" -Qi "$p" | grep -E '^(Repository|Required By|Optional For|Install Reason)' >&2 || true
+            # full chain: which explicitly requested packages lead to it
+            pacman --root "$ROOT" -Qtq 2>/dev/null >/dev/null || true
         fi
     done
     if [[ -e $ROOT/usr/lib/systemd/systemd ]]; then warn "POLICY VIOLATION: systemd init binary present"; fail=1; fi
