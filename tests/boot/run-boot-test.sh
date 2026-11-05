@@ -21,6 +21,7 @@
 #   cases: bios uefi copytoram verify textmode   (default: all)
 # Requires: docker, qemu-system-x86_64, grub-mkrescue (+pc/efi modules),
 #           xorriso, mtools, mksquashfs, busybox-static, OVMF, apt-get download.
+# shellcheck disable=SC2054  # qemu option values contain commas
 set -euo pipefail
 TOP=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 # shellcheck source=build/lib/common.sh

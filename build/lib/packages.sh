@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck disable=SC2154  # colour variables come from common.sh
 # Package manifest resolution. Sourced by build-iso.sh and by tests.
 #
 # resolve_manifests <index-file> <out-file> <manifest...>

@@ -111,6 +111,7 @@ build_local_pkg() {
     # Compiled packages install their makedepends via the veyra-pacman wrapper.
     local depflag=-s
     grep -Eq "^arch=\(['\"]?any['\"]?\)" "$bdir/PKGBUILD" && depflag=-d
+    # shellcheck disable=SC2024  # the log is written by root on purpose
     sudo -u veyrabuild env VEYRA_SRC="$WORK/src" PKGDEST="$bdir/out" SRCDEST="$bdir" \
         PACMAN=/usr/local/bin/veyra-pacman \
         makepkg "$depflag" --noconfirm --needed --cleanbuild -D "$bdir" \

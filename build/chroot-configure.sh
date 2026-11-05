@@ -38,7 +38,7 @@ if ! id "$LIVE_USER" >/dev/null 2>&1; then
 fi
 passwd -d "$LIVE_USER" >/dev/null          # empty password on the live medium only
 passwd -l root >/dev/null                  # root stays locked
-for g in gamemode; do getent group "$g" >/dev/null && gpasswd -a "$LIVE_USER" "$g" >/dev/null; done
+if getent group gamemode >/dev/null; then gpasswd -a "$LIVE_USER" gamemode >/dev/null; fi
 install -Dm440 /dev/stdin /etc/sudoers.d/10-veyra-live <<EOF
 # Live medium only — removed by the installer.
 ${LIVE_USER} ALL=(ALL:ALL) NOPASSWD: ALL

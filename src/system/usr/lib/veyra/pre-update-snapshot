@@ -5,6 +5,7 @@ CONF=/etc/veyra/snapshots.conf
 VEYRA_SNAPSHOTS=yes
 VEYRA_SNAPSHOT_REQUIRED=no
 VEYRA_SNAPSHOT_MIN_INTERVAL_MIN=60
+# shellcheck source=/dev/null
 [ -r "$CONF" ] && . "$CONF"
 [ "$VEYRA_SNAPSHOTS" = yes ] || exit 0
 command -v timeshift >/dev/null 2>&1 || exit 0
