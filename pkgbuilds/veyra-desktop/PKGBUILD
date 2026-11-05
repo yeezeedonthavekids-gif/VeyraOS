@@ -13,7 +13,7 @@ depends=('plasma-workspace' 'kwin' 'python' 'veyra-branding')
 # the package manifest (packages/desktop.list) as 'aurorae|kwin'.
 backup=('etc/xdg/kdeglobals')
 optdepends=('papirus-icon-theme: default icon theme'
-            'veyra-kwin-rounded-corners: rounded bottom window corners')
+            )
 
 package() {
     local s="${VEYRA_SRC:-$startdir/../../src}/desktop"

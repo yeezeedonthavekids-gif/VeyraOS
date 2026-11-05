@@ -35,7 +35,6 @@ blurEnabled=true
 contrastEnabled=true
 scaleEnabled=true
 fadeEnabled=false
-kwin4_effect_shapecornersEnabled=true
 shakecursorEnabled=false
 
 [Effect-blur]

@@ -1,0 +1,50 @@
+name: Build ISO
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  iso:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space (the build needs ~25 GB)
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune --all --force
+          df -h /
+      - name: Build the ISO in an Artix container
+        run: |
+          sudo build/build-in-docker.sh
+          ls -la out/
+      - name: Boot-check the ISO (QEMU, UEFI, KVM)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qemu-system-x86 ovmf xorriso socat imagemagick
+          sudo chmod 666 /dev/kvm || true
+          tests/boot/check-real-iso.sh out/*.iso out/boot-check
+      - name: Upload build logs and manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: veyraos-build-logs
+          path: |
+            out/*.log
+            out/*.packages.txt
+            out/*.sha256
+            out/boot-check/
+      - name: Publish release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          iso=$(ls *.iso)
+          # GitHub limits release assets to 2 GiB: publish the ISO in parts
+          split -b 1900M -d "$iso" "$iso.part"
+          gh release create "$GITHUB_REF_NAME" --title "VeyraOS $GITHUB_REF_NAME" \
+             --notes-file ../docs/RELEASE-NOTES.md --prerelease \
+             "$iso".part* "$iso.sha256" "$iso.sha512" *.packages.txt
