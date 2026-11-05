@@ -78,10 +78,10 @@ Double-click **Install VeyraOS** on the live desktop.
    * **Install alongside** — shrinks an existing (unencrypted) partition, e.g.
      Windows, with a slider and installs into the freed space. Windows stays
      and appears in the boot menu.
-   * **Free space you made in Windows:** choose *Replace a partition* and click
-     the *Free Space* block, or use *Manual partitioning* (create `/` in the
-     free space; mount the existing EFI partition at `/boot/efi`, do not
-     format it).
+   * **Free space you made in Windows:** use *Manual partitioning* (always
+     works), or *Replace a partition* if it lists the free space. In manual mode:
+     select the *Free Space* entry, create `/` (btrfs) in it, then edit the
+     existing EFI partition: mount point `/boot/efi`, **do not format it**.
    * **Replace a partition** — overwrite one partition you pick.
    * **Erase disk** — the whole selected disk. Check the disk name and size
      twice.
