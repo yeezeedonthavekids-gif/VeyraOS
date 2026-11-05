@@ -164,20 +164,18 @@ stage_resolve() {
     # All VeyraOS packages from the local repo:
     pacman --config "$CONF" -Slq veyra | grep -vx veyra-calamares >> "$RESOLVED" || true
     sort -u -o "$RESOLVED" "$RESOLVED"
-    # Early no-systemd check: expand every target (groups, provides) to the
-    # packages pacman would really install, without dependencies.
+    # Early no-systemd check: what each manifest entry really resolves to
+    # (groups and "provides" included, dependencies excluded).
     local -a targets; mapfile -t targets < "$RESOLVED"
-    if pacman --config "$CONF" -Sp --nodeps --nodeps --print-format '%n' "${targets[@]}" 2>/dev/null \
-            | grep -qxE 'systemd|systemd-libs|systemd-sysvcompat'; then
-        local t
-        for t in "${targets[@]}"; do
-            if pacman --config "$CONF" -Sp --nodeps --nodeps --print-format '%n %r' "$t" 2>/dev/null \
-                    | grep -qE '^systemd(-libs|-sysvcompat)? '; then
-                warn "manifest entry '$t' resolves to: $(pacman --config "$CONF" -Sp --nodeps --nodeps --print-format '%n(%r)' "$t" 2>/dev/null | grep -E '^systemd' | tr '\n' ' ')"
-            fi
-        done
-        die "a package manifest entry pulls in systemd (see above)"
-    fi
+    local t got bad=0
+    for t in "${targets[@]}"; do
+        got=$(pacman --config "$CONF" -Sp --nodeps --nodeps --print-format '%n' "$t" 2>&1) \
+            || { warn "cannot resolve '$t': $got"; bad=1; continue; }
+        if grep -qxE 'systemd|systemd-libs|systemd-sysvcompat' <<< "$got"; then
+            warn "manifest entry '$t' resolves to systemd: $(tr '\n' ' ' <<< "$got")"; bad=1
+        fi
+    done
+    ((bad == 0)) || die "manifest problem (see above)"
     ok "$(wc -l < "$RESOLVED") packages selected (no systemd)"
 }
 
@@ -220,9 +218,8 @@ stage_verify() {
     for p in systemd systemd-sysvcompat systemd-libs; do
         if pacman --root "$ROOT" -Q "$p" >/dev/null 2>&1; then
             warn "POLICY VIOLATION: package '$p' is installed"; fail=1
-            pacman --root "$ROOT" -Qi "$p" | grep -E '^(Repository|Required By|Optional For|Install Reason)' >&2 || true
-            # full chain: which explicitly requested packages lead to it
-            pacman --root "$ROOT" -Qtq 2>/dev/null >/dev/null || true
+            pacman --root "$ROOT" -Qi "$p" >&2 || true
+            grep -E "(installed|upgraded|replaced).*$p" "$ROOT/var/log/pacman.log" >&2 || true
         fi
     done
     if [[ -e $ROOT/usr/lib/systemd/systemd ]]; then warn "POLICY VIOLATION: systemd init binary present"; fail=1; fi
