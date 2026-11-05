@@ -172,7 +172,7 @@ stage_rootfs() {
     msg "Installing root filesystem into $ROOT"
     chroot_teardown
     if [[ -d $ROOT ]]; then rm -rf --one-file-system "$ROOT"; fi
-    mkdir -p "$ROOT"/var/lib/pacman "$ROOT"/etc
+    mkdir -p "$ROOT"/var/lib/pacman "$ROOT"/etc/pacman.d/hooks
     chroot_setup "$ROOT"
     local -a pkgs
     mapfile -t pkgs < "$RESOLVED"
