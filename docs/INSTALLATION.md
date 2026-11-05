@@ -49,16 +49,22 @@ work in the live session, so you can test your hardware first.
 
 1. **Back up** anything important. Resizing partitions is reliable but never
    risk-free.
-2. **BitLocker / Device Encryption:** in Windows, open *Manage BitLocker* and
-   either *Suspend protection* or at least write down the **recovery key**.
-   Changing the boot order can trigger a recovery-key prompt in Windows.
+2. **BitLocker / Device Encryption** (on by default on many Windows 11 PCs —
+   check *Settings → Privacy & security → Device encryption*):
+   * Write down the **recovery key** (aka.ms/myrecoverykey). Adding a boot
+     loader can make Windows ask for it once.
+   * Linux **cannot shrink an encrypted Windows partition**. Shrink it **in
+     Windows** (step 5 below) and install VeyraOS into the free space.
 3. **Turn off Fast Startup:** *Control Panel → Power Options → Choose what the
    power buttons do → Change settings that are currently unavailable →*
    untick **Turn on fast startup**. (Otherwise Windows leaves its partition
    in a hibernated state that Linux must not resize or write.)
 4. Shut Windows down completely (Shift + Shut down).
-5. Optional: shrink the Windows partition yourself in *Disk Management*
-   (Windows knows best which blocks are movable). The installer can also do it.
+5. Make room: in Windows, right-click Start → *Disk Management* → right-click
+   the C: partition → *Shrink Volume* (at least 60 GB, more for games).
+   Required with BitLocker/Device Encryption; recommended in general (Windows
+   knows best which blocks can be moved). Without encryption the installer's
+   *Install alongside* can shrink the partition instead.
 
 ## 5. Install
 
@@ -69,9 +75,13 @@ Double-click **Install VeyraOS** on the live desktop.
 2. **Location:** time zone (pick on the map; no online lookup).
 3. **Keyboard:** layout (type in the test box).
 4. **Partitions** — nothing is preselected; you must choose:
-   * **Install alongside** — shrinks an existing partition (e.g. Windows) with
-     a slider and installs into the freed space. Windows stays and appears in
-     the boot menu.
+   * **Install alongside** — shrinks an existing (unencrypted) partition, e.g.
+     Windows, with a slider and installs into the freed space. Windows stays
+     and appears in the boot menu.
+   * **Free space you made in Windows:** choose *Replace a partition* and click
+     the *Free Space* block, or use *Manual partitioning* (create `/` in the
+     free space; mount the existing EFI partition at `/boot/efi`, do not
+     format it).
    * **Replace a partition** — overwrite one partition you pick.
    * **Erase disk** — the whole selected disk. Check the disk name and size
      twice.
