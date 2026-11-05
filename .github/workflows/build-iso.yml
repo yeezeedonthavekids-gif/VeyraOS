@@ -36,15 +36,17 @@ jobs:
             out/*.packages.txt
             out/*.sha256
             out/boot-check/
-      - name: Publish release (tags only)
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publish the ISO as a GitHub Release (download page)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           cd out
           iso=$(ls *.iso)
+          if [[ $GITHUB_REF == refs/tags/* ]]; then tag=$GITHUB_REF_NAME
+          else tag="v2026.11-rc1-build${GITHUB_RUN_NUMBER}"; fi
           # GitHub limits release assets to 2 GiB: publish the ISO in parts
           split -b 1900M -d "$iso" "$iso.part"
-          gh release create "$GITHUB_REF_NAME" --title "VeyraOS $GITHUB_REF_NAME" \
+          gh release create "$tag" --target "$GITHUB_SHA" --title "VeyraOS 2026.11 RC1 ($tag)" \
              --notes-file ../docs/RELEASE-NOTES.md --prerelease \
              "$iso".part* "$iso.sha256" "$iso.sha512" *.packages.txt
+          echo "Download page: https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag" >> "$GITHUB_STEP_SUMMARY"
