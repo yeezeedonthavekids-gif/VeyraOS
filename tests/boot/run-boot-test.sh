@@ -102,6 +102,7 @@ r "BEGIN runlevel=$(rc-status -r) cmdline=$(cat /proc/cmdline)"
 check root-is-overlay       sh -c 'findmnt -n -o FSTYPE / | grep -qx overlay'
 check squashfs-mounted      sh -c 'findmnt -n -o FSTYPE /run/veyra/sfs | grep -qx squashfs'
 check device-marker         test -s /run/veyra/device
+check installer-image-link  sh -c '[ -L /run/veyra/rootfs.sfs ] && [ -f "$(readlink -f /run/veyra/rootfs.sfs)" ]'
 if grep -q veyra.copytoram=1 /proc/cmdline; then
     check copytoram-medium-released sh -c '! findmnt /run/veyra/medium'
     check copytoram-ram-image       test -f /run/veyra/ram/rootfs.sfs
