@@ -1,0 +1,31 @@
+name: probe
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/probe.yml']
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    container:
+      image: artixlinux/artixlinux:base-devel
+      options: --privileged
+    steps:
+      - name: Probe artools / profiles / package availability
+        shell: bash
+        run: |
+          set -x
+          pacman -Syu --noconfirm --needed artools-iso iso-profiles yq git 2>&1 | tail -5
+          echo '=== artools files'; pacman -Ql artools-iso artools-base iso-profiles | grep -v '/$' | head -150
+          echo '=== confs'; for f in /etc/artools/*.conf; do echo "--- $f"; cat "$f"; done
+          buildiso -h || true
+          P=/usr/share/artools/iso-profiles
+          ls -la $P
+          for d in common base plasma; do echo "=== $d"; find $P/$d -maxdepth 3 | head -80; done
+          for f in $(find $P/base $P/plasma $P/common -maxdepth 1 -type f); do echo "--- $f"; cat "$f"; done
+          echo '=== lib code'; ls /usr/share/artools/lib/ /usr/share/artools/lib/* ; cat /usr/share/artools/lib/iso/*.sh 2>/dev/null | head -700
+          echo '=== repos'; grep '^\[' /etc/pacman.conf
+          pacman -Sl | awk '{print $1}' | sort | uniq -c
+          for p in nvidia-open nvidia-open-dkms nvidia-utils lib32-nvidia-utils nvidia-settings opencl-nvidia cuda steam lutris gamescope mangohud lib32-mangohud gamemode lib32-gamemode calamares artix-calamares-branding plasma-meta plasma-desktop dolphin konsole ark spectacle plasma-systemmonitor discover flatpak ufw ufw-openrc nftables firewalld bluez-openrc networkmanager-openrc sddm-openrc linux linux-zen linux-headers mkinitcpio dracut booster grub efibootmgr os-prober sbctl shim-signed refind kvantum papirus-icon-theme ttf-inter inter-font noto-fonts plymouth plymouth-openrc artix-archlinux-support wine-staging winetricks protontricks power-profiles-daemon cpupower-openrc earlyoom zram-generator zramen-openrc zram-openrc irqbalance-openrc cronie-openrc ananicy-cpp elogind elogind-openrc pipewire wireplumber pipewire-pulse kwin-effect-rounded-corners kde-rounded-corners xdg-desktop-portal-kde partitionmanager; do printf '%-30s ' $p; pacman -Si $p 2>/dev/null | awk -F': ' '/^Repository|^Version/{printf "%s ", $2}'; echo; done
+          pacman -Ss nvidia | grep -E '^[a-z]' | head -40
+          pacman -Ss calamares | head; pacman -Ss openrc | grep -E '^[a-z]' | grep -iE 'zram|ufw|cpupower|irq|earlyoom|ananicy|gamemode|bluez|cups|sddm|plymouth|nftables|iptables|fail2ban|apparmor' 
+          pacman -Si linux | grep -E 'Version'
