@@ -1,0 +1,15 @@
+#!/bin/sh
+# elogind sleep hook: equivalent of NVIDIA's nvidia-suspend/resume/hibernate
+# systemd services. Called as: <pre|post> <suspend|hibernate|hybrid-sleep|suspend-then-hibernate>
+[ -e /proc/driver/nvidia/suspend ] || exit 0
+[ -x /usr/bin/nvidia-sleep.sh ] || exit 0
+case "$1" in
+    pre)
+        case "$2" in
+            hibernate|hybrid-sleep) /usr/bin/nvidia-sleep.sh hibernate ;;
+            *)                      /usr/bin/nvidia-sleep.sh suspend ;;
+        esac ;;
+    post)
+        /usr/bin/nvidia-sleep.sh resume ;;
+esac
+exit 0

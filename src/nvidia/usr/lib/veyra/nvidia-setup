@@ -1,0 +1,73 @@
+#!/bin/bash
+# nvidia-setup — configure graphics drivers for the detected hardware.
+# Used by the installer (inside the target system, as root) and by
+# VeyraOS Control. Works offline: the ISO already contains the driver.
+#
+#   nvidia-setup auto      detect and configure (default)
+#   nvidia-setup check     print what would be done, change nothing
+#
+# Outcomes:
+#   NVIDIA Turing+ (incl. RTX 50 series)  keep nvidia-open + utils; ensure
+#                                         kernel parameters; rebuild initramfs
+#   NVIDIA pre-Turing                     remove nvidia-open (unsupported),
+#                                         fall back to nouveau; tell the user
+#                                         to install the legacy driver
+#   No NVIDIA GPU                         remove NVIDIA packages (saves space,
+#                                         avoids loading a useless module)
+set -euo pipefail
+MODE=${1:-auto}
+DRY=0; [[ $MODE == check ]] && DRY=1
+log() { echo "[nvidia-setup] $*"; }
+run() { if ((DRY)); then echo "  would run: $*"; else "$@"; fi; }
+
+NV_PKGS=(nvidia-open-dkms nvidia-open nvidia-utils lib32-nvidia-utils nvidia-settings opencl-nvidia lib32-opencl-nvidia libva-nvidia-driver)
+installed() { local p out=(); for p in "$@"; do pacman -Q "$p" >/dev/null 2>&1 && out+=("$p"); done; printf '%s\n' "${out[@]}"; }
+
+class=$(/usr/bin/veyra-gpu-detect --nvidia-class)
+log "NVIDIA support class: $class"
+
+ensure_kernel_params() {
+    local f=/etc/default/grub p
+    [[ -f $f ]] || { log "no /etc/default/grub; skipping kernel parameters"; return 0; }
+    for p in nvidia_drm.modeset=1 nvidia_drm.fbdev=1; do
+        if ! grep -q "GRUB_CMDLINE_LINUX_DEFAULT=.*${p}" "$f"; then
+            run sed -i -E "s/^(GRUB_CMDLINE_LINUX_DEFAULT=\"[^\"]*)\"/\1 ${p}\"/" "$f"
+            log "added kernel parameter $p"
+        fi
+    done
+}
+
+remove_nvidia() {
+    local -a pk
+    mapfile -t pk < <(installed "${NV_PKGS[@]}")
+    if ((${#pk[@]})); then
+        log "removing: ${pk[*]}"
+        run pacman -Rns --noconfirm "${pk[@]}" || run pacman -Rdd --noconfirm "${pk[@]}"
+    fi
+    # nvidia-utils blacklists nouveau; removing it re-enables nouveau automatically.
+}
+
+case $class in
+    open)
+        if ! pacman -Q nvidia-utils >/dev/null 2>&1; then
+            log "NVIDIA GPU found but driver not installed — installing"
+            run pacman -S --noconfirm --needed nvidia-open-dkms nvidia-utils lib32-nvidia-utils nvidia-settings opencl-nvidia libva-nvidia-driver
+        fi
+        ensure_kernel_params
+        ((DRY)) || { mkdir -p /etc/veyra; echo open > /etc/veyra/gpu-profile; }
+        log "NVIDIA proprietary driver (open kernel modules) configured"
+        ;;
+    legacy)
+        log "This NVIDIA GPU predates Turing and is NOT supported by the nvidia-open driver."
+        log "Falling back to the open-source nouveau driver. For full performance install"
+        log "the legacy proprietary driver (nvidia-580xx-dkms from the AUR); see docs/NVIDIA.md."
+        remove_nvidia
+        ((DRY)) || { mkdir -p /etc/veyra; echo legacy > /etc/veyra/gpu-profile; }
+        ;;
+    none)
+        log "No NVIDIA GPU detected — removing NVIDIA packages"
+        remove_nvidia
+        ((DRY)) || { mkdir -p /etc/veyra; echo none > /etc/veyra/gpu-profile; }
+        ;;
+esac
+exit 0

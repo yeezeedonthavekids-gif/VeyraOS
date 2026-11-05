@@ -1,0 +1,10 @@
+# Compressed RAM swap. zram keeps the desktop responsive under memory pressure
+# without disk swap thrashing. Pages are compressed ~3:1 with zstd.
+ZRAM_ENABLED="yes"
+# Size of the zram device as a percentage of physical RAM (upper bound for
+# compressed + uncompressed data; RAM is only used as pages are swapped).
+ZRAM_SIZE_PERCENT=50
+ZRAM_MAX_SIZE_MB=16384
+ZRAM_ALGORITHM="zstd"
+# Higher than any disk swap so zram is used first.
+ZRAM_PRIORITY=100

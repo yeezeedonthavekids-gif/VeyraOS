@@ -1,0 +1,22 @@
+#!/bin/bash
+# mkinitcpio install hook for VeyraOS live boot.
+
+build() {
+    local m
+    for m in loop squashfs overlay isofs cdrom sr_mod udf vfat nls_cp437 nls_iso8859_1 nls_utf8; do
+        add_module "${m}?"
+    done
+    add_binary blkid
+    add_binary losetup
+    add_binary stat
+    add_binary sha512sum
+    add_runscript
+}
+
+help() {
+    cat <<HELPEOF
+Boots the VeyraOS live medium: finds the medium by label (veyra.label=),
+mounts the squashfs root image read-only and layers a tmpfs on top with
+overlayfs. Options: veyra.copytoram=1, veyra.verify=1, veyra.cowsize=SIZE.
+HELPEOF
+}

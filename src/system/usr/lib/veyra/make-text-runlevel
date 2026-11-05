@@ -1,0 +1,19 @@
+#!/bin/sh
+# Creates/refreshes the OpenRC "text" runlevel: the default runlevel minus the
+# graphical login. Boot it with the kernel parameter  softlevel=text
+# (GRUB: "Text mode rescue console"). Safe to run repeatedly.
+set -eu
+RL=/etc/runlevels
+mkdir -p "$RL/text"
+find "$RL/text" -mindepth 1 -maxdepth 1 -type l -delete
+for svc in "$RL"/default/*; do
+    [ -e "$svc" ] || [ -L "$svc" ] || continue
+    name=$(basename "$svc")
+    case $name in sddm|displaymanager|xdm|lightdm|gdm) continue ;; esac
+    ln -s "/etc/init.d/$name" "$RL/text/$name"
+done
+# Make sure there is a console login on tty1 and tty2
+for t in 1 2; do
+    [ -e "/etc/init.d/agetty.tty$t" ] && ln -sf "/etc/init.d/agetty.tty$t" "$RL/text/agetty.tty$t"
+done
+exit 0

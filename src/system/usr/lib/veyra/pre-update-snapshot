@@ -1,0 +1,27 @@
+#!/bin/sh
+# Called by pacman before upgrades/removals. Never blocks the update unless
+# the user explicitly asked for that (VEYRA_SNAPSHOT_REQUIRED=yes).
+CONF=/etc/veyra/snapshots.conf
+VEYRA_SNAPSHOTS=yes
+VEYRA_SNAPSHOT_REQUIRED=no
+VEYRA_SNAPSHOT_MIN_INTERVAL_MIN=60
+[ -r "$CONF" ] && . "$CONF"
+[ "$VEYRA_SNAPSHOTS" = yes ] || exit 0
+command -v timeshift >/dev/null 2>&1 || exit 0
+[ -s /etc/timeshift/timeshift.json ] || exit 0        # Timeshift not configured yet
+[ -e /run/veyra/sfs ] && exit 0                         # live medium
+# Rate-limit: at most one automatic snapshot per interval
+stamp=/var/lib/veyra/last-snapshot
+mkdir -p /var/lib/veyra
+if [ -f "$stamp" ] && [ -z "$(find "$stamp" -mmin +"$VEYRA_SNAPSHOT_MIN_INTERVAL_MIN" 2>/dev/null)" ]; then
+    echo ":: restore point skipped (one was created less than ${VEYRA_SNAPSHOT_MIN_INTERVAL_MIN} min ago)"
+    exit 0
+fi
+if timeshift --create --scripted --tags O --comments "Before system update" >/dev/null 2>&1; then
+    touch "$stamp"
+    echo ":: restore point created"
+    exit 0
+fi
+echo ":: WARNING: could not create a restore point" >&2
+[ "$VEYRA_SNAPSHOT_REQUIRED" = yes ] && exit 1
+exit 0

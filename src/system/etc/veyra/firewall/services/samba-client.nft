@@ -1,0 +1,2 @@
+# Windows network share browsing (NetBIOS name service replies)
+add rule inet veyra services udp sport 137 accept

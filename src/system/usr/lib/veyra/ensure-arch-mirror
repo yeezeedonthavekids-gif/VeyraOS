@@ -1,0 +1,8 @@
+#!/bin/sh
+# archlinux-mirrorlist ships with every server commented out. Enable the
+# official geo-balanced Arch mirror if no server is active yet.
+f=${1:-/etc/pacman.d/mirrorlist-arch}
+[ -f "$f" ] || exit 0
+if ! grep -q '^[[:space:]]*Server' "$f"; then
+    printf '\n# Enabled by VeyraOS: official geo-balanced mirror\nServer = https://geo.mirror.pkgbuild.com/$repo/os/$arch\n' >> "$f"
+fi

@@ -1,0 +1,15 @@
+steam
+lutris
+gamescope
+mangohud
+lib32-mangohud
+gamemode
+lib32-gamemode
+?goverlay
+?wine-staging|wine
+?winetricks
+?lib32-gnutls
+?lib32-libpulse
+?lib32-openal
+?vkd3d
+?lib32-vkd3d

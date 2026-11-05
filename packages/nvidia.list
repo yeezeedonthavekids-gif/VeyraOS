@@ -1,0 +1,14 @@
+# NVIDIA proprietary userspace + open kernel modules.
+# RTX 50-series (Blackwell, e.g. RTX 5060) is ONLY supported by the open kernel
+# modules (nvidia-open); the legacy closed modules do not support it.
+# DKMS builds the module for every installed kernel (linux + linux-lts).
+nvidia-open-dkms|nvidia-open
+nvidia-utils
+lib32-nvidia-utils
+nvidia-settings
+opencl-nvidia
+?lib32-opencl-nvidia
+libva-nvidia-driver
+egl-wayland
+?egl-gbm
+# CUDA (~4 GB) is not on the ISO; install with:  sudo pacman -S cuda

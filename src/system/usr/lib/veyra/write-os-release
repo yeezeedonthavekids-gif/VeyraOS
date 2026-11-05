@@ -1,0 +1,29 @@
+#!/bin/sh
+# Writes /etc/os-release for VeyraOS. /etc/os-release takes precedence over
+# /usr/lib/os-release (owned by the Artix 'filesystem' package), so Artix
+# updates never overwrite the VeyraOS identity. Re-run by a pacman hook.
+set -eu
+. /usr/share/veyra/release
+tmp=$(mktemp /etc/.os-release.XXXXXX)
+cat > "$tmp" <<OSR
+NAME="VeyraOS"
+PRETTY_NAME="VeyraOS ${VEYRA_VERSION}"
+ID=veyraos
+ID_LIKE="artix arch"
+BUILD_ID=rolling
+VERSION="${VEYRA_VERSION} (${VEYRA_CODENAME})"
+VERSION_ID=${VEYRA_VERSION}
+VERSION_CODENAME=$(echo "$VEYRA_CODENAME" | tr 'A-Z' 'a-z')
+ANSI_COLOR="38;2;124;92;255"
+LOGO=veyraos
+HOME_URL="https://github.com/yeezeedonthavekids-gif/veyraos"
+DOCUMENTATION_URL="https://github.com/yeezeedonthavekids-gif/veyraos/tree/main/docs"
+SUPPORT_URL="https://github.com/yeezeedonthavekids-gif/veyraos/issues"
+BUG_REPORT_URL="https://github.com/yeezeedonthavekids-gif/veyraos/issues"
+OSR
+chmod 644 "$tmp"
+mv -f "$tmp" /etc/os-release
+cat > /etc/issue <<ISSUE
+\e[38;2;124;92;255mVeyraOS ${VEYRA_VERSION}\e[0m  (\l)   kernel \r
+
+ISSUE

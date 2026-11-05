@@ -1,0 +1,72 @@
+#!/bin/bash
+# veyra-gpu-detect — report graphics hardware and driver state.
+#   veyra-gpu-detect           human readable
+#   veyra-gpu-detect --json    machine readable (used by VeyraOS apps/installer)
+#   veyra-gpu-detect --nvidia-class   prints: none | open | legacy
+#     open   = Turing (GTX 16xx / RTX 20xx) or newer: supported by nvidia-open
+#     legacy = Maxwell/Pascal/Volta or older: NOT supported by nvidia-open
+set -uo pipefail
+LSPCI=${VEYRA_LSPCI:-lspci}
+
+# NVIDIA PCI device IDs >= 0x1e00 are Turing or newer (TU1xx starts at 0x1e02;
+# Volta GV100 is 0x1d81 and below). This is a heuristic on the documented ID
+# ranges; the open modules list their supported IDs in modinfo as the
+# authoritative source, which is checked when available.
+nvidia_class_for_id() {
+    local id=$((16#$1))
+    if ((id >= 0x1e00)); then echo open; else echo legacy; fi
+}
+
+mapfile -t GPUS < <($LSPCI -Dnn 2>/dev/null | grep -E '\[(0300|0302|0380)\]')
+
+json_escape() { local s=${1//\\/\\\\}; s=${s//\"/\\\"}; printf '%s' "$s"; }
+
+nv_class=none
+entries=()
+for line in "${GPUS[@]}"; do
+    slot=${line%% *}
+    name=$(sed -E 's/^[^ ]+ [^:]+: //; s/ \[[0-9a-f]{4}:[0-9a-f]{4}\].*$//' <<< "$line")
+    ids=$(grep -oE '\[[0-9a-f]{4}:[0-9a-f]{4}\]' <<< "$line" | tail -1 | tr -d '[]')
+    vendor=${ids%%:*}; device=${ids##*:}
+    case $vendor in
+        10de) v=nvidia; c=$(nvidia_class_for_id "$device")
+              [[ $nv_class == open ]] || nv_class=$c ;;
+        1002) v=amd ;;
+        8086) v=intel ;;
+        1af4|1234|15ad|80ee|1b36) v=virtual ;;
+        *) v=other ;;
+    esac
+    driver=$(basename "$(readlink -f "/sys/bus/pci/devices/$slot/driver" 2>/dev/null)" 2>/dev/null)
+    [[ $driver == . || -z $driver ]] && driver=none
+    entries+=("$slot|$v|$vendor:$device|$driver|$name")
+done
+
+nv_loaded=no;  [[ -e /proc/driver/nvidia/version ]] && nv_loaded=yes
+nv_version=$(sed -nE 's/.*Kernel Module( for x86_64)? +([0-9.]+).*/\2/p' /proc/driver/nvidia/version 2>/dev/null | head -1)
+session=${XDG_SESSION_TYPE:-unknown}
+
+case ${1:-} in
+    --nvidia-class) echo "$nv_class" ;;
+    --json)
+        printf '{"gpus":['
+        sep=''
+        for e in "${entries[@]}"; do
+            IFS='|' read -r slot v ids driver name <<< "$e"
+            printf '%s{"slot":"%s","vendor":"%s","id":"%s","driver":"%s","name":"%s"}' \
+                "$sep" "$slot" "$v" "$ids" "$driver" "$(json_escape "$name")"
+            sep=','
+        done
+        printf '],"nvidia_class":"%s","nvidia_loaded":%s,"nvidia_version":"%s","session":"%s"}\n' \
+            "$nv_class" "$([[ $nv_loaded == yes ]] && echo true || echo false)" "$nv_version" "$session"
+        ;;
+    *)
+        if ((${#entries[@]} == 0)); then echo "No graphics adapters found (is pciutils installed?)"; fi
+        for e in "${entries[@]}"; do
+            IFS='|' read -r slot v ids driver name <<< "$e"
+            printf '%-14s %-8s %-10s driver: %-10s %s\n' "$slot" "$v" "$ids" "$driver" "$name"
+        done
+        echo "NVIDIA support class: $nv_class"
+        [[ $nv_loaded == yes ]] && echo "NVIDIA driver loaded: $nv_version"
+        echo "Session type: $session"
+        ;;
+esac

@@ -1,0 +1,29 @@
+#!/usr/bin/openrc-run
+# Live-medium session setup. Only present on the live medium (the installer
+# removes the veyra-live package).
+description="VeyraOS live session setup"
+
+depend() {
+	need localmount
+	before displaymanager sddm xdm
+	keyword -docker -podman -lxc -openvz -prefix -systemd-nspawn -vserver -wsl
+}
+
+start() {
+	ebegin "Preparing the VeyraOS live session"
+	mkdir -p /run/veyra
+	# A fresh pacman keyring per boot: private keys are never shipped on the ISO.
+	# Runs in the background (takes a few seconds); the Software Center and
+	# installer wait for /run/veyra/keyring-ready.
+	(
+		pacman-key --init >/dev/null 2>&1 \
+		&& pacman-key --populate artix archlinux >/dev/null 2>&1 \
+		&& touch /run/veyra/keyring-ready
+	) &
+	# Unique machine identity for this boot
+	if [ ! -s /etc/machine-id ]; then
+		dbus-uuidgen > /etc/machine-id 2>/dev/null || cat /proc/sys/kernel/random/uuid | tr -d - > /etc/machine-id
+	fi
+	mkdir -p /var/lib/dbus && ln -sf /etc/machine-id /var/lib/dbus/machine-id
+	eend 0
+}

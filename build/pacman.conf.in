@@ -1,0 +1,37 @@
+# VeyraOS pacman configuration (build host). Generated from pacman.conf.in.
+# Repositories: official Artix repos first (OpenRC-native packages win),
+# then the official Arch repos via Artix's artix-archlinux-support.
+# No third-party repositories are used.
+
+[options]
+HoldPkg      = pacman glibc
+Architecture = auto
+CheckSpace
+ParallelDownloads = 5
+SigLevel          = Required DatabaseOptional
+LocalFileSigLevel = Optional
+NoProgressBar
+
+# Local, build-time-only repository holding the VeyraOS packages built from
+# pkgbuilds/. Not present on installed systems.
+[veyra]
+SigLevel = Optional TrustAll
+Server = file://@REPO_DIR@
+
+[system]
+Include = /etc/pacman.d/mirrorlist
+
+[world]
+Include = /etc/pacman.d/mirrorlist
+
+[galaxy]
+Include = /etc/pacman.d/mirrorlist
+
+[lib32]
+Include = /etc/pacman.d/mirrorlist
+
+[extra]
+Include = /etc/pacman.d/mirrorlist-arch
+
+[multilib]
+Include = /etc/pacman.d/mirrorlist-arch

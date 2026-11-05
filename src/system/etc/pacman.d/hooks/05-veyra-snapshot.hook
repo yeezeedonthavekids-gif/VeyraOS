@@ -1,0 +1,13 @@
+# Creates a Timeshift restore point before system updates (like Windows
+# "System Restore"), if Timeshift has been set up. Skipped silently otherwise.
+[Trigger]
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+
+[Action]
+Description = Creating a restore point (Timeshift)...
+When = PreTransaction
+Exec = /usr/lib/veyra/pre-update-snapshot
+AbortOnFail

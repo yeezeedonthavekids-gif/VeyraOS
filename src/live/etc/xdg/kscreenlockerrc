@@ -1,0 +1,4 @@
+# Live medium: no automatic screen lock (the live user has no password)
+[Daemon]
+Autolock=false
+LockOnResume=false

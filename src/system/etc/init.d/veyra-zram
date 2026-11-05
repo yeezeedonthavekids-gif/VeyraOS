@@ -1,0 +1,53 @@
+#!/usr/bin/openrc-run
+# VeyraOS compressed RAM swap (zram). Configuration: /etc/conf.d/veyra-zram
+
+description="Compressed swap in RAM (zram)"
+
+: "${ZRAM_SIZE_PERCENT:=50}"
+: "${ZRAM_MAX_SIZE_MB:=16384}"
+: "${ZRAM_ALGORITHM:=zstd}"
+: "${ZRAM_PRIORITY:=100}"
+
+depend() {
+	need localmount
+	after modules
+	before swap
+	keyword -docker -podman -lxc -openvz -prefix -systemd-nspawn -vserver -wsl
+}
+
+start() {
+	if [ "${ZRAM_ENABLED:-yes}" != "yes" ]; then
+		einfo "zram swap disabled in /etc/conf.d/veyra-zram"
+		return 0
+	fi
+	ebegin "Setting up zram swap"
+	modprobe zram num_devices=1 2>/dev/null
+	if [ ! -e /sys/block/zram0 ]; then
+		eend 1 "zram kernel module not available"
+		return 1
+	fi
+	if grep -q '^/dev/zram0 ' /proc/swaps; then
+		eend 0
+		return 0
+	fi
+	local mem_kb size_mb
+	mem_kb=$(awk '/^MemTotal:/{print $2}' /proc/meminfo)
+	size_mb=$(( mem_kb * ZRAM_SIZE_PERCENT / 100 / 1024 ))
+	[ "$size_mb" -gt "$ZRAM_MAX_SIZE_MB" ] && size_mb=$ZRAM_MAX_SIZE_MB
+	echo 1 > /sys/block/zram0/reset 2>/dev/null
+	echo "$ZRAM_ALGORITHM" > /sys/block/zram0/comp_algorithm 2>/dev/null \
+		|| ewarn "compression algorithm $ZRAM_ALGORITHM unsupported, using kernel default"
+	echo "${size_mb}M" > /sys/block/zram0/disksize \
+		&& mkswap -L veyra-zram /dev/zram0 >/dev/null \
+		&& swapon -p "$ZRAM_PRIORITY" /dev/zram0
+	eend $? "failed to activate zram swap"
+}
+
+stop() {
+	ebegin "Disabling zram swap"
+	if grep -q '^/dev/zram0 ' /proc/swaps; then
+		swapoff /dev/zram0 || { eend 1 "swapoff failed (not enough free RAM?)"; return 1; }
+	fi
+	[ -e /sys/block/zram0/reset ] && echo 1 > /sys/block/zram0/reset
+	eend 0
+}

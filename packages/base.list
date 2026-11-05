@@ -1,0 +1,106 @@
+# --- Core system (Artix + OpenRC; no systemd) ---
+base
+base-devel
+openrc
+elogind-openrc
+dbus-openrc
+udev|eudev
+artix-keyring
+archlinux-keyring
+artix-archlinux-support
+archlinux-mirrorlist
+pacman-contrib
+
+# --- Kernels, firmware, microcode ---
+linux
+linux-headers
+linux-lts
+linux-lts-headers
+linux-firmware
+amd-ucode
+intel-ucode
+?sof-firmware
+mkinitcpio
+dkms
+
+# --- Boot ---
+grub
+efibootmgr
+os-prober
+?memtest86+-efi
+?sbctl
+
+# --- Filesystems & storage ---
+btrfs-progs
+e2fsprogs
+dosfstools
+exfatprogs
+ntfs-3g
+xfsprogs
+cryptsetup
+lvm2
+mtools
+smartmontools
+udisks2
+?nvme-cli
+
+# --- Networking ---
+networkmanager-openrc
+networkmanager
+wpa_supplicant
+nftables
+iproute2
+chrony-openrc|openntpd-openrc|ntp-openrc
+?modemmanager
+
+# --- Audio (PipeWire) ---
+pipewire
+pipewire-pulse
+pipewire-alsa
+pipewire-jack
+wireplumber
+lib32-pipewire
+alsa-utils
+
+# --- Bluetooth ---
+bluez
+bluez-utils
+bluez-openrc
+
+# --- Printing (installed, NOT enabled by default; toggle in Veyra Control) ---
+cups
+cups-openrc
+?cups-pk-helper
+
+# --- Scheduled tasks ---
+cronie-openrc
+
+# --- Snapshots / restore points ---
+timeshift
+
+# --- Shell & tools ---
+sudo
+polkit
+bash-completion
+nano
+vim
+man-db
+man-pages
+git
+curl
+wget
+rsync
+zstd
+unzip
+zip
+7zip|p7zip
+?unrar
+htop
+fastfetch
+pciutils
+usbutils
+dmidecode
+lsof
+which
+xdg-user-dirs
+xdg-utils

@@ -1,0 +1,16 @@
+#!/usr/bin/openrc-run
+# One-time setup that needs a network connection (retried each boot until done):
+#  - add the Flathub remote (used by the Software Center)
+description="VeyraOS first-boot network setup"
+
+depend() {
+	after NetworkManager net
+	keyword -docker -podman -lxc -openvz -prefix -systemd-nspawn -vserver -wsl
+}
+
+start() {
+	ebegin "VeyraOS first-boot setup"
+	# Run in the background so it never delays boot
+	( /usr/lib/veyra/firstboot >/var/log/veyra-firstboot.log 2>&1 & )
+	eend 0
+}

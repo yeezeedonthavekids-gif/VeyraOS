@@ -1,0 +1,76 @@
+#!/bin/bash
+# Privileged part of VeyraOS Gaming Mode. Invoked via pkexec by
+# veyra-gaming-mode; never takes arbitrary input: the only argument is
+# on|off|status, and the service list comes from the root-owned config.
+set -euo pipefail
+export PATH=/usr/bin:/usr/sbin:/bin:/sbin
+CONF=/etc/veyra/gaming-mode.conf
+STATE_DIR=/run/veyra/gaming-mode
+CPU_PERFORMANCE=yes
+PAUSE_SERVICES=""
+# shellcheck source=/dev/null
+[[ -r $CONF && $(stat -c %u "$CONF") == 0 ]] && source "$CONF"
+
+valid_service() { [[ $1 =~ ^[A-Za-z0-9._-]+$ && -x /etc/init.d/$1 ]]; }
+
+cpu_on() {
+    local p
+    for p in /sys/devices/system/cpu/cpufreq/policy*; do
+        [[ -d $p ]] || continue
+        local n; n=$(basename "$p")
+        if [[ -w $p/energy_performance_preference ]]; then
+            cat "$p/energy_performance_preference" > "$STATE_DIR/epp.$n"
+            # EPP can only be changed with the powersave governor under amd-pstate-epp
+            echo performance > "$p/energy_performance_preference" 2>/dev/null || true
+        elif [[ -w $p/scaling_governor ]]; then
+            cat "$p/scaling_governor" > "$STATE_DIR/gov.$n"
+            echo performance > "$p/scaling_governor" 2>/dev/null || true
+        fi
+    done
+}
+
+cpu_off() {
+    local f n
+    for f in "$STATE_DIR"/epp.* "$STATE_DIR"/gov.*; do
+        [[ -e $f ]] || continue
+        n=${f##*.}
+        [[ $n =~ ^policy[0-9]+$ ]] || continue
+        case $f in
+            */epp.*) cat "$f" > "/sys/devices/system/cpu/cpufreq/$n/energy_performance_preference" 2>/dev/null || true ;;
+            */gov.*) cat "$f" > "/sys/devices/system/cpu/cpufreq/$n/scaling_governor" 2>/dev/null || true ;;
+        esac
+        rm -f "$f"
+    done
+}
+
+case ${1:-} in
+    on)
+        if [[ -e $STATE_DIR/active ]]; then echo "already on"; exit 0; fi
+        mkdir -p "$STATE_DIR"; chmod 755 "$STATE_DIR"
+        [[ $CPU_PERFORMANCE == yes ]] && cpu_on
+        : > "$STATE_DIR/paused"
+        for s in $PAUSE_SERVICES; do
+            valid_service "$s" || continue
+            if rc-service "$s" status >/dev/null 2>&1; then
+                rc-service "$s" stop >/dev/null 2>&1 && echo "$s" >> "$STATE_DIR/paused"
+            fi
+        done
+        touch "$STATE_DIR/active"
+        echo "on"
+        ;;
+    off)
+        [[ -e $STATE_DIR/active ]] || { echo "already off"; exit 0; }
+        cpu_off
+        if [[ -f $STATE_DIR/paused ]]; then
+            while read -r s; do
+                valid_service "$s" && rc-service "$s" start >/dev/null 2>&1 || true
+            done < "$STATE_DIR/paused"
+        fi
+        rm -rf "$STATE_DIR"
+        echo "off"
+        ;;
+    status)
+        [[ -e $STATE_DIR/active ]] && echo on || echo off ;;
+    *)
+        echo "usage: $0 on|off|status" >&2; exit 2 ;;
+esac

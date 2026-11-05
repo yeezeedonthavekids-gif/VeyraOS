@@ -1,0 +1,27 @@
+# --- Core applications (Windows equivalents in comments) ---
+dolphin                 # File Explorer
+dolphin-plugins
+kio-extras
+kio-admin               # "Open as administrator"
+ffmpegthumbs
+kdegraphics-thumbnailers
+konsole                 # Terminal
+kate                    # Notepad / code editor
+okular                  # PDF / document viewer
+gwenview                # Photos
+spectacle               # Snipping Tool
+ark                     # Archive manager (zip/7z/rar)
+kcalc                   # Calculator
+filelight               # Disk usage
+partitionmanager        # Disk Management
+print-manager           # Printers
+kwalletmanager
+firefox                 # Web browser
+haruna|vlc              # Media player
+?elisa                  # Music
+flatpak                 # Flathub support for the Software Center
+?kde-connect|kdeconnect
+
+# --- Runtime for VeyraOS native apps ---
+python
+pyside6

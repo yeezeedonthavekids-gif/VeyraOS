@@ -1,0 +1,4 @@
+# VeyraOS release identification (kept in sync with build/profile.conf by tests/static/check-release.sh)
+VEYRA_VERSION=2026.11
+VEYRA_CODENAME=Aurora
+VEYRA_CHANNEL=rc1

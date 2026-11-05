@@ -1,0 +1,45 @@
+#!/usr/sbin/nft -f
+# VeyraOS firewall — base rule set.
+# Inbound: only replies to outgoing connections, loopback, ICMP essentials and
+#          DHCPv6 replies are accepted. Everything else is dropped.
+# Outbound: unrestricted (like Windows Defender Firewall defaults).
+# Optional services (Steam Remote Play, KDE Connect, SSH, ...) are allowed by
+# linking their snippet into /etc/veyra/firewall/enabled/ (see veyra-firewall).
+
+table inet veyra
+delete table inet veyra
+
+table inet veyra {
+	chain input {
+		type filter hook input priority filter; policy drop;
+
+		ct state invalid drop
+		ct state { established, related } accept
+		iif lo accept
+
+		# ICMP: path MTU discovery, errors, rate-limited ping
+		icmp type { destination-unreachable, time-exceeded, parameter-problem } accept
+		icmp type echo-request limit rate 5/second accept
+		# ICMPv6 is required for IPv6 to work at all (neighbour discovery etc.)
+		icmpv6 type { destination-unreachable, packet-too-big, time-exceeded, parameter-problem, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert, mld-listener-query } accept
+		icmpv6 type echo-request limit rate 5/second accept
+		# DHCPv6 client replies
+		ip6 daddr fe80::/64 udp sport 547 udp dport 546 accept
+
+		jump services
+	}
+
+	chain services {
+		# populated from /etc/veyra/firewall/enabled/*.nft
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+	}
+
+	chain output {
+		type filter hook output priority filter; policy accept;
+	}
+}
+
+include "/etc/veyra/firewall/enabled/*.nft"

@@ -1,0 +1,2 @@
+# OpenSSH server (only useful if sshd is installed and started)
+add rule inet veyra services tcp dport 22 ct state new limit rate 10/minute accept

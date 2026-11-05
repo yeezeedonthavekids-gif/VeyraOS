@@ -1,0 +1,5 @@
+# VeyraOS: members of "wheel" are administrators (like the Windows
+# Administrators group). The password is always required.
+%wheel ALL=(ALL:ALL) ALL
+Defaults pwfeedback
+Defaults timestamp_timeout=10

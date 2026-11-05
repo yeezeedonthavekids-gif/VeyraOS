@@ -1,0 +1,5 @@
+# Calamares graphical installer. If the repos do not carry it, the build
+# falls back to building pkgbuilds/calamares from source.
+calamares|veyra-calamares
+?kpmcore
+?ckbcomp

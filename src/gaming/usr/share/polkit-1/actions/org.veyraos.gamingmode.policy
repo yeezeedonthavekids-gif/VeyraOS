@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>VeyraOS</vendor>
+  <action id="org.veyraos.gamingmode">
+    <description>Switch Gaming Mode on or off</description>
+    <message>Gaming Mode needs to adjust CPU power settings and pause background services</message>
+    <icon_name>input-gaming</icon_name>
+    <defaults>
+      <!-- Low-risk, fixed actions: allowed without a password for the
+           user sitting at the computer; remote/inactive sessions must authenticate. -->
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/veyra/gaming-mode-helper</annotate>
+  </action>
+</policyconfig>

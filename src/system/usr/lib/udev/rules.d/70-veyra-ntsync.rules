@@ -1,0 +1,2 @@
+# /dev/ntsync is safe for unprivileged use (same model as upstream systemd >= 258).
+KERNEL=="ntsync", MODE="0666"

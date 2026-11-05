@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PipeWire audio
+Comment=Start the PipeWire sound server
+Exec=/usr/bin/veyra-pipewire-launcher
+NoDisplay=true
+X-KDE-autostart-phase=0
+X-KDE-StartupNotify=false
+OnlyShowIn=KDE;

@@ -1,0 +1,46 @@
+#!/bin/bash
+# veyra-firewall — manage the VeyraOS firewall.
+#   veyra-firewall status                 show state and enabled services
+#   veyra-firewall list                   list available service rules
+#   veyra-firewall enable-service NAME    allow a service (e.g. steam-remoteplay)
+#   veyra-firewall disable-service NAME
+#   veyra-firewall on|off                 start/stop the firewall (and boot enablement)
+set -euo pipefail
+DIR=/etc/veyra/firewall
+usage() { sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'; }
+need_root() { [[ $EUID -eq 0 ]] || { echo "veyra-firewall: this action requires root (use sudo)" >&2; exit 1; }; }
+valid_name() { [[ $1 =~ ^[a-z0-9-]+$ && -f $DIR/services/$1.nft ]] || { echo "unknown service: $1 (see: veyra-firewall list)" >&2; exit 2; }; }
+reload() { if rc-service -q veyra-firewall status >/dev/null 2>&1; then rc-service veyra-firewall reload; fi; }
+
+case ${1:-status} in
+    status)
+        if rc-service veyra-firewall status >/dev/null 2>&1; then echo "Firewall: active"; else echo "Firewall: INACTIVE"; fi
+        if rc-update show default 2>/dev/null | grep -qw veyra-firewall; then echo "Start at boot: yes"; else echo "Start at boot: no"; fi
+        echo "Allowed services:"
+        found=0
+        for f in "$DIR"/enabled/*.nft; do [[ -e $f ]] || continue; echo "  - $(basename "$f" .nft)"; found=1; done
+        ((found)) || echo "  (none — all unsolicited inbound traffic is blocked)"
+        ;;
+    list)
+        for f in "$DIR"/services/*.nft; do
+            n=$(basename "$f" .nft); d=$(sed -n '1s/^# *//p' "$f")
+            state=off; [[ -e $DIR/enabled/$n.nft ]] && state=on
+            printf '%-18s %-4s %s\n' "$n" "$state" "$d"
+        done
+        ;;
+    enable-service)
+        need_root; valid_name "${2:-}"
+        ln -sf "../services/$2.nft" "$DIR/enabled/$2.nft"
+        reload; echo "allowed: $2"
+        ;;
+    disable-service)
+        need_root; valid_name "${2:-}"
+        rm -f "$DIR/enabled/$2.nft"
+        reload; echo "blocked: $2"
+        ;;
+    on)  need_root; rc-update add veyra-firewall default >/dev/null; rc-service veyra-firewall start ;;
+    off) need_root; rc-service veyra-firewall stop; rc-update del veyra-firewall default >/dev/null || true
+         echo "WARNING: firewall disabled. Re-enable with: sudo veyra-firewall on" ;;
+    -h|--help|help) usage ;;
+    *) usage; exit 2 ;;
+esac

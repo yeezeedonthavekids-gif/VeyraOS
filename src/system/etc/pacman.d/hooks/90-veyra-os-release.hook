@@ -1,0 +1,11 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = filesystem
+Target = veyra-system
+
+[Action]
+Description = Applying VeyraOS release information...
+When = PostTransaction
+Exec = /usr/lib/veyra/write-os-release

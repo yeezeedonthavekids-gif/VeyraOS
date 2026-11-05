@@ -1,0 +1,3 @@
+# KDE Connect (phone integration), LAN only
+add rule inet veyra services ip saddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } tcp dport 1714-1764 accept
+add rule inet veyra services ip saddr { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 } udp dport 1714-1764 accept

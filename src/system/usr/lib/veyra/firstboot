@@ -1,0 +1,21 @@
+#!/bin/sh
+# Network-dependent one-time setup. Idempotent; removes itself from the
+# default runlevel when everything succeeded.
+set -u
+done_all=1
+# Wait up to 2 minutes for connectivity
+i=0
+while [ $i -lt 24 ]; do
+    if getent hosts dl.flathub.org >/dev/null 2>&1; then break; fi
+    sleep 5; i=$((i+1))
+done
+if command -v flatpak >/dev/null 2>&1; then
+    if ! flatpak remotes --system 2>/dev/null | grep -q '^flathub'; then
+        flatpak remote-add --system --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo \
+            && echo "flathub remote added" || done_all=0
+    fi
+fi
+if [ $done_all = 1 ] && [ ! -e /run/veyra/sfs ]; then
+    rc-update del veyra-firstboot default >/dev/null 2>&1
+fi
+exit 0

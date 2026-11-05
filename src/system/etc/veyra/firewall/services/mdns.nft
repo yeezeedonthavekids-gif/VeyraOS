@@ -1,0 +1,2 @@
+# mDNS / Bonjour (network printer and device discovery)
+add rule inet veyra services udp dport 5353 accept

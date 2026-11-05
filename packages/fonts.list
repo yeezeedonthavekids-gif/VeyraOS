@@ -1,0 +1,8 @@
+noto-fonts
+noto-fonts-emoji
+?noto-fonts-cjk
+inter-font|ttf-inter
+ttf-liberation          # metric-compatible with Arial / Times New Roman / Courier New
+ttf-dejavu
+ttf-jetbrains-mono
+?ttf-cascadia-code

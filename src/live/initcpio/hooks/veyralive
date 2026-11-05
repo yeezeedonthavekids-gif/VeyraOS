@@ -1,0 +1,127 @@
+#!/usr/bin/ash
+# shellcheck shell=dash
+# VeyraOS live-boot mkinitcpio hook.
+#
+# Kernel parameters (parsed from /proc/cmdline directly so dotted names work):
+#   veyra.label=LABEL     filesystem label of the boot medium (required; enables the hook)
+#   veyra.copytoram=1     copy the root image to RAM, then release the medium
+#   veyra.verify=1        verify rootfs.sfs against rootfs.sha512 before booting
+#   veyra.cowsize=SIZE    size of the writable tmpfs layer (default 75%)
+#   veyra.basedir=DIR     directory on the medium holding the image (default veyra)
+#
+# Resulting mounts (visible in the booted system under /run/veyra):
+#   /run/veyra/medium   the boot medium (absent with copytoram)
+#   /run/veyra/sfs      read-only root image (squashfs)
+#   /run/veyra/cow      tmpfs holding the overlay upper/work dirs
+
+_vl_param() {
+    # _vl_param <key>: print the value of key=value (or "1" for a bare key)
+    _vl_k=$1
+    # shellcheck disable=SC2013
+    for _vl_w in $(cat /proc/cmdline); do
+        case $_vl_w in
+            "$_vl_k="*) echo "${_vl_w#*=}"; return 0 ;;
+            "$_vl_k")   echo 1; return 0 ;;
+        esac
+    done
+    return 1
+}
+
+_vl_fail() {
+    err "VeyraOS live boot: $*"
+    echo
+    echo "   The VeyraOS live medium could not be started."
+    echo "   Try: re-writing the USB drive, a different USB port, or the"
+    echo "   'Verify medium integrity' entry in the Troubleshooting menu."
+    echo
+    echo "   Dropping to an emergency shell. Type 'exit' to retry."
+    launch_interactive_shell
+}
+
+_vl_find_medium() {
+    # Waits up to ~45 s for the labelled medium (slow USB controllers/hubs).
+    _vl_i=0
+    while [ "$_vl_i" -lt 90 ]; do
+        _vl_dev=$(blkid -L "$VL_LABEL" 2>/dev/null)
+        if [ -z "$_vl_dev" ] && [ -e "/dev/disk/by-label/$VL_LABEL" ]; then
+            _vl_dev=$(readlink -f "/dev/disk/by-label/$VL_LABEL")
+        fi
+        if [ -n "$_vl_dev" ] && [ -b "$_vl_dev" ]; then
+            echo "$_vl_dev"
+            return 0
+        fi
+        [ "$_vl_i" -eq 4 ] && msg ":: Waiting for the VeyraOS medium (label $VL_LABEL)..." >&2
+        sleep 0.5
+        _vl_i=$((_vl_i + 1))
+    done
+    return 1
+}
+
+run_hook() {
+    VL_LABEL=$(_vl_param veyra.label) || return 0   # not a live boot: do nothing
+    VL_COPYTORAM=$(_vl_param veyra.copytoram) || VL_COPYTORAM=0
+    VL_VERIFY=$(_vl_param veyra.verify) || VL_VERIFY=0
+    VL_COWSIZE=$(_vl_param veyra.cowsize) || VL_COWSIZE=75%
+    VL_BASEDIR=$(_vl_param veyra.basedir) || VL_BASEDIR=veyra
+    export VL_LABEL VL_COPYTORAM VL_VERIFY VL_COWSIZE VL_BASEDIR
+    # shellcheck disable=SC2034  # consumed by mkinitcpio's init
+    mount_handler=veyra_mount_handler
+}
+
+veyra_mount_handler() {
+    _vl_newroot=$1
+    _vl_run=/run/veyra
+    _vl_img=
+
+    for _vl_m in loop squashfs overlay isofs; do
+        modprobe -q "$_vl_m" 2>/dev/null
+    done
+    mkdir -p "$_vl_run/medium" "$_vl_run/sfs" "$_vl_run/cow"
+
+    _vl_dev=$(_vl_find_medium) || { _vl_fail "no device with label '$VL_LABEL' was found"; return 1; }
+    msg ":: VeyraOS medium found at $_vl_dev"
+
+    if ! mount -o ro "$_vl_dev" "$_vl_run/medium" 2>/dev/null; then
+        mount -t iso9660 -o ro "$_vl_dev" "$_vl_run/medium" || { _vl_fail "cannot mount $_vl_dev"; return 1; }
+    fi
+    _vl_img=$_vl_run/medium/$VL_BASEDIR/x86_64/rootfs.sfs
+    [ -f "$_vl_img" ] || { _vl_fail "root image $VL_BASEDIR/x86_64/rootfs.sfs is missing"; return 1; }
+
+    if [ "$VL_VERIFY" = 1 ]; then
+        msg ":: Verifying the root image (this takes a minute)..."
+        if (cd "$_vl_run/medium/$VL_BASEDIR/x86_64" && sha512sum -c rootfs.sha512); then
+            msg ":: Integrity check passed."
+        else
+            _vl_fail "integrity check FAILED — the medium is damaged; re-download/re-write it"
+            return 1
+        fi
+    fi
+
+    if [ "$VL_COPYTORAM" = 1 ]; then
+        _vl_need=$(( $(stat -c %s "$_vl_img") / 1024 + 262144 ))   # KiB + 256 MiB headroom
+        _vl_have=$(awk '/^MemAvailable:/{print $2}' /proc/meminfo)
+        if [ "$_vl_have" -gt "$_vl_need" ]; then
+            msg ":: Copying the root image to RAM..."
+            mkdir -p "$_vl_run/ram"
+            mount -t tmpfs -o "size=$(( _vl_need ))k,mode=0755" veyra-ram "$_vl_run/ram"
+            if cp "$_vl_img" "$_vl_run/ram/rootfs.sfs"; then
+                _vl_img=$_vl_run/ram/rootfs.sfs
+                umount "$_vl_run/medium" && rmdir "$_vl_run/medium"
+            else
+                err "copy to RAM failed; continuing from the medium"
+                umount "$_vl_run/ram"
+            fi
+        else
+            err "not enough RAM to copy the image (need ${_vl_need} KiB); continuing from the medium"
+        fi
+    fi
+
+    mount -t squashfs -o ro,loop "$_vl_img" "$_vl_run/sfs" || { _vl_fail "cannot mount the root image"; return 1; }
+    mount -t tmpfs -o "size=$VL_COWSIZE,mode=0755" veyra-cow "$_vl_run/cow" || { _vl_fail "cannot create the writable layer"; return 1; }
+    mkdir -p "$_vl_run/cow/upper" "$_vl_run/cow/work"
+    mount -t overlay -o "lowerdir=$_vl_run/sfs,upperdir=$_vl_run/cow/upper,workdir=$_vl_run/cow/work" \
+        veyra-root "$_vl_newroot" || { _vl_fail "cannot mount the overlay root"; return 1; }
+
+    # Marker for the booted system (also used by the installer).
+    echo "$_vl_dev" > "$_vl_run/device"
+}

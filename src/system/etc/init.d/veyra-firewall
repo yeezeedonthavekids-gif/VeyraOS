@@ -1,0 +1,43 @@
+#!/usr/bin/openrc-run
+# VeyraOS firewall (nftables). Default policy: deny inbound, allow outbound.
+# Rules: /etc/veyra/firewall/base.nft + enabled services in
+#        /etc/veyra/firewall/enabled/*.nft (symlinks into services/).
+# Manage with:  veyra-firewall status|enable-service NAME|disable-service NAME
+
+description="VeyraOS nftables firewall"
+extra_commands="status"
+extra_started_commands="reload"
+
+RULES=/etc/veyra/firewall/base.nft
+
+depend() {
+	need localmount
+	before net
+	provide firewall
+	keyword -docker -podman -lxc -openvz -prefix -systemd-nspawn -vserver -wsl
+}
+
+start() {
+	ebegin "Loading firewall rules"
+	if [ ! -r "$RULES" ]; then
+		eend 1 "$RULES not found"
+		return 1
+	fi
+	nft -c -f "$RULES" || { eend 1 "rule set failed validation; NOT loading"; return 1; }
+	nft -f "$RULES"
+	eend $?
+}
+
+reload() {
+	start
+}
+
+stop() {
+	ebegin "Unloading firewall rules"
+	nft delete table inet veyra 2>/dev/null
+	eend 0
+}
+
+status() {
+	nft list table inet veyra
+}

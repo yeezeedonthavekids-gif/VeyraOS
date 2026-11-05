@@ -1,0 +1,18 @@
+#!/bin/sh
+# Starts the PipeWire audio stack for the graphical session.
+# OpenRC has no per-user service manager by default, so the session starts it
+# (via XDG autostart). Does nothing if PipeWire is already running or if the
+# distribution's own launcher is installed.
+if [ -x /usr/bin/artix-pipewire-launcher ]; then
+    exec /usr/bin/artix-pipewire-launcher
+fi
+uid=$(id -u)
+if pgrep -u "$uid" -x pipewire >/dev/null 2>&1; then
+    exit 0
+fi
+pipewire &
+# Give the core a moment before the session manager and Pulse server attach
+sleep 0.5
+wireplumber &
+pipewire-pulse &
+wait
