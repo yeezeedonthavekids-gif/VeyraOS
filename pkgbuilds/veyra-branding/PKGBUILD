@@ -23,5 +23,7 @@ package() {
     install -m644 "$s/logo/veyraos-mark.svg" "$pkgdir/usr/share/pixmaps/veyraos-logo.svg"
     install -m644 "$s/logo/veyraos-wordmark-on-dark.svg" "$pkgdir/usr/share/pixmaps/veyraos-logo-white.svg"
     install -m644 "$s/logo/veyraos-wordmark.svg" "$pkgdir/usr/share/pixmaps/veyraos-wordmark.svg"
+    install -Dm644 "$s/fastfetch/logo.txt" "$pkgdir/usr/share/veyra/fastfetch/logo.txt"
+    install -Dm644 "$s/fastfetch/config.jsonc" "$pkgdir/etc/xdg/fastfetch/config.jsonc"
     find "$pkgdir" -type d -exec chmod 755 {} + ; find "$pkgdir" -type f -exec chmod 644 {} +
 }
