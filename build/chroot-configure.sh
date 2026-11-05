@@ -101,8 +101,13 @@ for t in 3 4 5 6; do rc-update del "agetty.tty$t" default >/dev/null 2>&1 || tru
 # Used by the "Text mode rescue console" boot entry (softlevel=text).
 /usr/lib/veyra/make-text-runlevel
 
-# ---- Live initramfs config sanity ------------------------------------------
+# ---- Live initramfs: boot animation if Plymouth is installed ---------------
 [[ -f /etc/veyra/mkinitcpio-live.conf ]] || { echo "ERROR: veyra-live not installed" >&2; exit 1; }
+if [[ -f /usr/lib/initcpio/install/plymouth ]]; then
+    sed -i 's/^HOOKS=(base udev /HOOKS=(base udev plymouth /' /etc/veyra/mkinitcpio-live.conf
+    plymouth-set-default-theme veyra 2>/dev/null || true
+    log "plymouth enabled for the live boot"
+fi
 
 # ---- Desktop database / caches ---------------------------------------------
 log "caches"
@@ -110,5 +115,11 @@ update-desktop-database -q 2>/dev/null || true
 gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor 2>/dev/null || true
 fc-cache -s >/dev/null 2>&1 || true
 # Flathub is configured on first boot by veyra-firstboot (needs network).
+
+# ---- No pacman keyring in the image ------------------------------------------
+# A keyring created during package installation would contain a private key
+# shared by every copy of the ISO. The live session (veyra-live) and the
+# installer (post-install) each create a fresh one.
+rm -rf /etc/pacman.d/gnupg
 
 log "done"

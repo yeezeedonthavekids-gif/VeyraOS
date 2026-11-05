@@ -211,11 +211,15 @@ stage_verify() {
     if [[ -e $ROOT/usr/lib/systemd/systemd ]]; then warn "POLICY VIOLATION: systemd init binary present"; fail=1; fi
     [[ $(readlink "$ROOT/usr/bin/init") == openrc-init ]] || { warn "init is not openrc-init"; fail=1; }
     for p in "${KERNELS[@]}"; do
-        [[ -f $ROOT/boot/vmlinuz-$p ]] || { warn "kernel $p missing"; fail=1; }
-        compgen -G "$ROOT/usr/lib/modules/*/updates/dkms/nvidia.ko*" >/dev/null \
-          || compgen -G "$ROOT/usr/lib/modules/*/extramodules/nvidia.ko*" >/dev/null \
-          || compgen -G "$ROOT/usr/lib/modules/*/*/nvidia.ko*" >/dev/null \
-          || { warn "NVIDIA kernel module was not built"; fail=1; }
+        [[ -f $ROOT/boot/vmlinuz-$p ]] || { warn "kernel $p missing"; fail=1; continue; }
+        # the NVIDIA module must exist for EVERY kernel (DKMS or prebuilt)
+        local moddir
+        moddir=$(dirname "$(grep -lx "$p" "$ROOT"/usr/lib/modules/*/pkgbase 2>/dev/null | head -1)")
+        if [[ -z $moddir || $moddir == . ]]; then
+            warn "no module directory for kernel $p"; fail=1
+        elif ! find "$moddir" -name 'nvidia.ko*' -print -quit | grep -q .; then
+            warn "NVIDIA kernel module was not built for $p ($(basename "$moddir"))"; fail=1
+        fi
     done
     for p in NetworkManager dbus elogind veyra-firewall veyra-zram veyra-live; do
         compgen -G "$ROOT/etc/runlevels/*/$p" >/dev/null || { warn "service $p is not enabled"; fail=1; }
