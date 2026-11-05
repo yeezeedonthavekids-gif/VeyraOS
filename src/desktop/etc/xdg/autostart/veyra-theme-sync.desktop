@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=VeyraOS title bar theme sync
+Exec=/usr/lib/veyra/theme-sync
+NoDisplay=true
+X-KDE-autostart-phase=1
+OnlyShowIn=KDE;

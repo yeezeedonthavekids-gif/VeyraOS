@@ -17,6 +17,9 @@ libva-utils
 plasma-desktop
 plasma-workspace
 kwin
+# Aurorae (window decoration engine for the Windows-style title bar) is a
+# separate package since Plasma 6.3; on older Plasma it is part of kwin.
+aurorae|kwin
 plasma-nm
 plasma-pa
 bluedevil

@@ -9,6 +9,8 @@ arch=('any')
 url="https://github.com/yeezeedonthavekids-gif/veyraos"
 license=('GPL-3.0-or-later')
 depends=('plasma-workspace' 'kwin' 'python' 'veyra-branding')
+# Aurorae (title bar engine) is a separate package since Plasma 6.3; it is in
+# the package manifest (packages/desktop.list) as 'aurorae|kwin'.
 backup=('etc/xdg/kdeglobals')
 optdepends=('papirus-icon-theme: default icon theme'
             'veyra-kwin-rounded-corners: rounded bottom window corners')
@@ -16,5 +18,6 @@ optdepends=('papirus-icon-theme: default icon theme'
 package() {
     local s="${VEYRA_SRC:-$startdir/../../src}/desktop"
     cp -r --no-preserve=ownership "$s/." "$pkgdir/"
+    rm -f "$pkgdir/etc/xdg/kdeglobals.base"   # source for tools/gen-kdeglobals.py
     chmod 755 "$pkgdir"/usr/lib/veyra/*
 }

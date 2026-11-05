@@ -25,3 +25,6 @@ theme=__aurorae__svg__Veyra
 
 [KSplash]
 Theme=org.veyraos.desktop
+
+[Wallpaper]
+Image=Veyra

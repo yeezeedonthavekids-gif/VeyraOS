@@ -368,7 +368,7 @@ class ControlWindow(NavWindow):
         row = QHBoxLayout()
         for text, pkg in (("Light", "org.veyraos.desktop"), ("Dark", "org.veyraos.desktop.dark")):
             b = QPushButton(text)
-            b.clicked.connect(lambda _=False, k=pkg: launch(["plasma-apply-lookandfeel", "-a", k]))
+            b.clicked.connect(lambda _=False, k=pkg: self.apply_theme(k))
             row.addWidget(b)
         row.addStretch(1)
         c.lay.addLayout(row)
@@ -380,6 +380,13 @@ class ControlWindow(NavWindow):
         p.add(more)
         p.finish()
         return p
+
+    def apply_theme(self, pkg: str):
+        try:
+            subprocess.run(["plasma-apply-lookandfeel", "-a", pkg], timeout=60)
+            subprocess.run(["/usr/lib/veyra/theme-sync"], timeout=30)
+        except (OSError, subprocess.TimeoutExpired) as e:
+            QMessageBox.warning(self, "Appearance", f"Could not change the theme: {e}")
 
     # ------------------------------------------------------------- about ---
     def about_page(self) -> Page:
