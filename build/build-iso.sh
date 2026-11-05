@@ -215,8 +215,12 @@ stage_configure() {
 stage_verify() {
     msg "Verifying policy"
     local fail=0 p
+    # Exact installed package names: "pacman -Q systemd" would also match
+    # packages that merely *provide* the name (Artix's artix-archlinux-support
+    # provides systemd/systemd-libs as a dummy so Arch packages install).
+    local installed; installed=$(pacman --root "$ROOT" -Qq)
     for p in systemd systemd-sysvcompat systemd-libs; do
-        if pacman --root "$ROOT" -Q "$p" >/dev/null 2>&1; then
+        if grep -qx "$p" <<< "$installed"; then
             warn "POLICY VIOLATION: package '$p' is installed"; fail=1
             pacman --root "$ROOT" -Qi "$p" >&2 || true
             grep -E "(installed|upgraded|replaced).*$p" "$ROOT/var/log/pacman.log" >&2 || true
