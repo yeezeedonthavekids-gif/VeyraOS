@@ -92,12 +92,15 @@ component with the real tools that *are* reachable:
 
 ### Test status at the end of the session
 
-* `make test`: static checks OK, ShellCheck clean (33 scripts), 37 unit/GUI
+* `make test`: static checks OK, ShellCheck clean (36 scripts), 41 unit/GUI
   tests pass.
 * `make test-packaging`: all 8 packages build (makepkg) and install (pacman)
   in Artix containers; OpenRC scripts accepted by `openrc-run`.
-* `make test-boot`: **5/5 boot cases pass** (BIOS CD, UEFI disk,
-  copy-to-RAM, verify, text mode).
+* `make test-boot`: **5/5 boot cases pass** on the final code (BIOS CD,
+  UEFI disk, copy-to-RAM, verify, text mode; 10–15 in-system checks each).
+* Installer post-install script verified on an Artix root (hostname/keymap
+  for OpenRC, Plasma keyboard layout, live settings removed, keyring, driver
+  decision, home permissions).
 * `make test-desktop`: Plasma 6.6 renders the VeyraOS desktop for a new user,
   light and dark (screenshots in `docs/screenshots/`).
 * Calamares 3.3.14 loads the full VeyraOS configuration without errors.
@@ -114,7 +117,11 @@ component with the real tools that *are* reachable:
    claude/veyraos-build-8mr4li` fails with 403 until the Claude GitHub App
    gets write access to `yeezeedonthavekids-gif/veyraos`
    (https://claude.ai/connect-github). Nothing else is needed — the branch is
-   complete and self-contained.
+   complete and self-contained. Because the session container is temporary,
+   the full history was also delivered as a git bundle
+   (`veyraos-2026.11-rc1.bundle`; restore with
+   `git clone veyraos-2026.11-rc1.bundle VeyraOS`, then
+   `git push -u origin claude/veyraos-build-8mr4li`).
 2. **First real ISO build**: run `make iso` (or the *Build ISO* workflow).
    Expect possibly a few package-name corrections in `packages/*.list`
    (the resolver lists them all at once).
