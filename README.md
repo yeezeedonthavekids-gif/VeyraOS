@@ -8,6 +8,8 @@ Start menu, centered taskbar, File Explorer, Task Manager, Windows shortcuts and
 |---|---|
 | ![Desktop, light](docs/screenshots/desktop-light.png) | ![Desktop, dark](docs/screenshots/desktop-dark.png) |
 | ![Start menu](docs/screenshots/start-menu.png) | ![File Explorer](docs/screenshots/file-explorer.png) |
+| ![Boot animation](docs/screenshots/boot-splash.png) | ![Boot menu](docs/screenshots/grub-menu.png) |
+| ![VeyraOS Control](docs/screenshots/app-control-gaming.png) | ![Installer](docs/screenshots/installer-welcome.png) |
 
 *Screenshots are real renders of the VeyraOS packages in a Plasma 6.6 session (software rendering, so no window shadows/blur). See [docs/TESTING.md](docs/TESTING.md).*
 

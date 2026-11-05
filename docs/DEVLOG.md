@@ -82,6 +82,13 @@ component with the real tools that *are* reachable:
     source tree (now `PYTHONPYCACHEPREFIX`).
 11. **Content error caught in review**: Apex Legends was listed as working
     with anti-cheat; EA blocked Linux in 2024. Corrected.
+12. **Plymouth password prompt** showed the spinner inside the passphrase box
+    (the per-frame refresh re-showed it) — found by rendering the theme with
+    Plymouth's X11 renderer; fixed with a spinner-visibility flag.
+13. **Build robustness** (review): the image verification now checks the
+    NVIDIA module for *each* kernel, and the live configuration removes any
+    pacman keyring created by package scripts (no shared private key on the
+    ISO), instead of failing the build late.
 
 ### Test status at the end of the session
 
@@ -94,6 +101,12 @@ component with the real tools that *are* reachable:
 * `make test-desktop`: Plasma 6.6 renders the VeyraOS desktop for a new user,
   light and dark (screenshots in `docs/screenshots/`).
 * Calamares 3.3.14 loads the full VeyraOS configuration without errors.
+* Plymouth theme runs in real Plymouth (splash, message, LUKS prompt) and the
+  KSplash QML renders (screenshots in `docs/screenshots/`).
+* `build/build-iso.sh --stage packages` builds all 8 packages and the local
+  repository inside the Artix container (stops at the first mirror access, as
+  expected offline); `build/chroot-configure.sh` configures an Artix OpenRC
+  root correctly (live user, runlevels, text runlevel, autologin, identity).
 
 ### Where I stopped / what is unresolved
 

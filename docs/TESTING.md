@@ -9,6 +9,8 @@ Five layers, from seconds to tens of minutes. Each says exactly what it proves.
 | `make test-packaging` | All VeyraOS PKGBUILDs build with **makepkg** in the official Artix base-devel container and install with **pacman** in the Artix base-openrc container; every OpenRC script is accepted by `openrc-run describe`; sudoers parses (`visudo -c`); os-release hook works; text runlevel is generated; no world-writable files | Dependency resolution against the repos (packages are installed with `-dd` offline) |
 | `make test-boot` | An ISO produced by the **real** `build/lib/iso.sh` (GRUB menu + theme, `grub-mkrescue` hybrid image) with the **real** `veyralive` hook boots in QEMU: **BIOS from CD, UEFI from a USB-style disk, copy-to-RAM, integrity verification, text-mode runlevel**. Inside the booted Artix OpenRC system it checks: overlay root, `/run/veyra` mounts, writable root, VeyraOS os-release, machine-id, **zram swap active**, **firewall active with policy drop and per-service toggling**, sysctl applied, no crashed services | The real kernel/initramfs (uses Ubuntu's kernel and a mkinitcpio-compatible init because Artix kernel packages could not be downloaded); the desktop session |
 | `make test-desktop` | The built packages, extracted into a **Plasma 6.6** system, produce the intended desktop for a **brand-new user**: layout script, colours, icons, fonts, title bars, Dolphin places, Start menu favourites with friendly names; switching to the dark global theme (+ title-bar sync) works. Screenshots in `docs/screenshots/` | Artix-specific packaging of Plasma; GPU effects (blur/shadows: software rendering) |
+| `tests/branding/run-plymouth-test.sh` | The Plymouth theme parses and runs in real Plymouth (X11 renderer): splash, status message, encrypted-disk password prompt | Behaviour on real DRM/KMS hardware |
+| `tests/branding/render_splash.py` (also in `make test-unit`) | The login splash (KSplash QML) loads without QML errors and renders | — |
 | `tests/boot/check-real-iso.sh` (CI) | The real ISO boots with its own kernel and mkinitcpio initramfs to the display manager; screenshot of the live desktop | Hardware-specific behaviour |
 | Calamares (manual, see DEVLOG) | The installer configuration loads in **Calamares 3.3.14** with all modules; branding and welcome page render | An actual disk installation |
 
@@ -27,6 +29,7 @@ Five layers, from seconds to tens of minutes. Each says exactly what it proves.
 * Global theme switch did not change the title bars (desktop test).
 * Calamares: GeoIP style rejected; missing `localecfg` config (Calamares/static).
 * `veyra-apps` check() wrote into the read-only source tree (packaging test).
+* Plymouth showed the spinner inside the password box (Plymouth render test).
 
 ## Still to test on real hardware (release blockers for 2026.11 final)
 
