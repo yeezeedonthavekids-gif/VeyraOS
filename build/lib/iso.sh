@@ -42,7 +42,14 @@ set timeout=10
 set timeout_style=menu
 
 if loadfont /boot/grub/fonts/unicode.pf2 ; then
-    set gfxmode=auto
+    # UEFI: native panel resolution (GOP). Legacy BIOS: "auto" picks the
+    # largest VBE mode, which can make the themed menu unusably slow (seen
+    # in testing), so prefer common modes there.
+    if [ "\$grub_platform" = "efi" ] ; then
+        set gfxmode=auto
+    else
+        set gfxmode=1920x1080,1280x720,1024x768,auto
+    fi
     set gfxpayload=keep
     terminal_output gfxterm
 fi

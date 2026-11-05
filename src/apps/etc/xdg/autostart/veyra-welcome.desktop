@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome to VeyraOS
+Exec=veyra-welcome --autostart
+Icon=veyraos
+NoDisplay=true
+X-KDE-autostart-phase=2
+OnlyShowIn=KDE;

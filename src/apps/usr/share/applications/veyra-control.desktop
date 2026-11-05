@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=VeyraOS Control
+GenericName=System Control
+Comment=Drivers, gaming, updates, firewall, restore points and services
+Exec=veyra-control
+Icon=veyraos
+Categories=Settings;System;
+Keywords=drivers;nvidia;gaming;firewall;security;updates;restore;timeshift;services;

@@ -1,0 +1,19 @@
+# Maintainer: VeyraOS Project
+# Sources live in src/ of the VeyraOS repository; build/build-iso.sh exports
+# VEYRA_SRC. Building by hand: VEYRA_SRC=$PWD/../../src makepkg -d
+pkgname=veyra-nvidia
+pkgver=2026.11
+pkgrel=1
+pkgdesc="VeyraOS NVIDIA integration: KMS/Wayland settings, OpenRC suspend hooks, GPU detection and driver setup"
+arch=('any')
+url="https://github.com/yeezeedonthavekids-gif/veyraos"
+license=('GPL-3.0-or-later')
+depends=('pciutils' 'elogind')
+optdepends=('nvidia-utils: NVIDIA driver userspace')
+backup=('etc/modprobe.d/veyra-nvidia.conf')
+
+package() {
+    local s="${VEYRA_SRC:-$startdir/../../src}/nvidia"
+    cp -r --no-preserve=ownership "$s/." "$pkgdir/"
+    chmod 755 "$pkgdir"/usr/bin/* "$pkgdir"/usr/lib/veyra/* "$pkgdir"/usr/lib/elogind/system-sleep/*
+}

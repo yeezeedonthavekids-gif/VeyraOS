@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Welcome to VeyraOS
+Comment=Get started with VeyraOS
+Exec=veyra-welcome
+Icon=veyraos
+Categories=System;

@@ -1,0 +1,121 @@
+#!/bin/bash
+# veyra-helper — the ONLY privileged entry point used by the VeyraOS apps.
+# Invoked through pkexec (polkit action org.veyraos.helper: administrator
+# password, cached for a few minutes — like a Windows UAC prompt).
+#
+# Security model:
+#  * a fixed list of actions; anything else is rejected
+#  * every argument is validated against a strict pattern before use
+#  * arguments are always passed after "--" so they can never become options
+#  * no shell evaluation of user input; PATH is fixed
+#  * VEYRA_HELPER_DRYRUN=1 prints the commands instead of running them (tests)
+#
+# Actions:
+#   pkg-install NAME...             install repository packages
+#   pkg-remove NAME...              remove packages (core packages are protected)
+#   system-update                   full system upgrade (pacman -Syu)
+#   firewall on|off
+#   firewall-service enable|disable NAME
+#   service enable|disable NAME     only: cupsd bluetoothd sshd
+#   nvidia-setup                    (re)configure graphics drivers
+#   auto-update off|notify|download|install
+#   snapshot                        create a Timeshift restore point now
+#   set-theme-default light|dark    system-wide default for NEW users
+set -euo pipefail
+export PATH=/usr/bin:/usr/sbin:/bin:/sbin
+export LC_ALL=C.UTF-8
+umask 022
+
+die() { echo "veyra-helper: $*" >&2; exit 2; }
+run() {
+    if [[ ${VEYRA_HELPER_DRYRUN:-0} == 1 ]]; then
+        printf 'DRYRUN:'; printf ' %q' "$@"; printf '\n'
+    else
+        "$@"
+    fi
+}
+
+[[ $EUID -eq 0 || ${VEYRA_HELPER_DRYRUN:-0} == 1 ]] || die "must be run as root (via pkexec)"
+
+# Package names: Arch naming rules (lowercase alnum and @._+-), not starting with - or .
+valid_pkg() { [[ $1 =~ ^[a-z0-9@_+][a-z0-9@._+-]{0,127}$ ]]; }
+# Packages whose removal would break the system.
+PROTECTED=" base base-devel linux linux-lts linux-firmware glibc openrc elogind elogind-openrc udev
+ pacman sudo polkit grub mkinitcpio dbus dbus-openrc networkmanager networkmanager-openrc
+ plasma-workspace plasma-desktop kwin sddm sddm-openrc python pyside6 bash coreutils filesystem
+ artix-keyring archlinux-keyring veyra-system veyra-desktop veyra-branding veyra-apps veyra-nvidia "
+
+ACTION=${1:-}; shift || true
+case $ACTION in
+    pkg-install)
+        (($# > 0)) || die "no packages given"
+        for p in "$@"; do valid_pkg "$p" || die "invalid package name: $p"; done
+        run pacman -S --noconfirm --needed -- "$@"
+        ;;
+    pkg-remove)
+        (($# > 0)) || die "no packages given"
+        for p in "$@"; do
+            valid_pkg "$p" || die "invalid package name: $p"
+            [[ $PROTECTED == *" $p "* ]] && die "refusing to remove core package: $p"
+        done
+        run pacman -Rns --noconfirm -- "$@"
+        ;;
+    system-update)
+        (($# == 0)) || die "system-update takes no arguments"
+        run pacman -Syu --noconfirm
+        ;;
+    firewall)
+        case ${1:-} in
+            on|off) run /usr/bin/veyra-firewall "$1" ;;
+            *) die "usage: firewall on|off" ;;
+        esac
+        ;;
+    firewall-service)
+        [[ ${1:-} == enable || ${1:-} == disable ]] || die "usage: firewall-service enable|disable NAME"
+        [[ ${2:-} =~ ^[a-z0-9-]{1,40}$ && -f /etc/veyra/firewall/services/${2}.nft ]] || die "unknown firewall service: ${2:-}"
+        run /usr/bin/veyra-firewall "$1-service" "$2"
+        ;;
+    service)
+        [[ ${1:-} == enable || ${1:-} == disable ]] || die "usage: service enable|disable NAME"
+        case ${2:-} in cupsd|bluetoothd|sshd) ;; *) die "service not manageable here: ${2:-}" ;; esac
+        [[ -x /etc/init.d/$2 || ${VEYRA_HELPER_DRYRUN:-0} == 1 ]] || die "service $2 is not installed"
+        if [[ $1 == enable ]]; then
+            run rc-update add "$2" default
+            run rc-service "$2" start
+        else
+            run rc-service "$2" stop
+            run rc-update del "$2" default
+        fi
+        ;;
+    nvidia-setup)
+        run /usr/lib/veyra/nvidia-setup auto
+        run grub-mkconfig -o /boot/grub/grub.cfg
+        ;;
+    auto-update)
+        case ${1:-} in off|notify|download|install) ;; *) die "usage: auto-update off|notify|download|install" ;; esac
+        if [[ ${VEYRA_HELPER_DRYRUN:-0} == 1 ]]; then
+            echo "DRYRUN: write /etc/veyra/auto-update.conf MODE=$1"
+        else
+            install -d -m755 /etc/veyra
+            printf '# Managed by VeyraOS Control\nMODE=%s\n' "$1" > /etc/veyra/auto-update.conf
+        fi
+        ;;
+    snapshot)
+        run timeshift --create --scripted --tags O --comments "Manual restore point"
+        ;;
+    set-theme-default)
+        case ${1:-} in
+            light) pkg=org.veyraos.desktop ;;
+            dark)  pkg=org.veyraos.desktop.dark ;;
+            *) die "usage: set-theme-default light|dark" ;;
+        esac
+        run sed -i "s/^LookAndFeelPackage=.*/LookAndFeelPackage=$pkg/" /etc/xdg/kdeglobals
+        ;;
+    ''|-h|--help)
+        sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
+        exit 0
+        ;;
+    *)
+        die "unknown action: $ACTION"
+        ;;
+esac

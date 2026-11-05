@@ -1,0 +1,19 @@
+# Maintainer: VeyraOS Project
+# Sources live in src/ of the VeyraOS repository; build/build-iso.sh exports
+# VEYRA_SRC. Building by hand: VEYRA_SRC=$PWD/../../src makepkg -d
+pkgname=veyra-gaming
+pkgver=2026.11
+pkgrel=1
+pkgdesc="VeyraOS gaming configuration: GameMode, MangoHud defaults and Gaming Mode"
+arch=('any')
+url="https://github.com/yeezeedonthavekids-gif/veyraos"
+license=('GPL-3.0-or-later')
+depends=('gamemode' 'polkit' 'openrc')
+optdepends=('mangohud: performance overlay' 'steam' 'lutris' 'gamescope')
+backup=('etc/gamemode.ini' 'etc/veyra/gaming-mode.conf')
+
+package() {
+    local s="${VEYRA_SRC:-$startdir/../../src}/gaming"
+    cp -r --no-preserve=ownership "$s/." "$pkgdir/"
+    chmod 755 "$pkgdir"/usr/lib/veyra/*
+}

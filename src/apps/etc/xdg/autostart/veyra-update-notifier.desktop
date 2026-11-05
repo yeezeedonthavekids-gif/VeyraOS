@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=VeyraOS update notifier
+Exec=veyra-update --notify
+NoDisplay=true
+X-KDE-autostart-phase=2
+OnlyShowIn=KDE;

@@ -1,0 +1,27 @@
+# Maintainer: VeyraOS Project
+# Sources live in src/ of the VeyraOS repository; build/build-iso.sh exports
+# VEYRA_SRC. Building by hand: VEYRA_SRC=$PWD/../../src makepkg -d
+pkgname=veyra-branding
+pkgver=2026.11
+pkgrel=1
+pkgdesc="VeyraOS visual identity: logo, wallpapers, sounds, boot animation, GRUB theme"
+arch=('any')
+url="https://github.com/yeezeedonthavekids-gif/veyraos"
+license=('CC-BY-SA-4.0' 'OFL-1.1')
+install=veyra-branding.install
+optdepends=('plymouth: boot animation')
+
+package() {
+    local s="${VEYRA_SRC:-$startdir/../../src}/branding"
+    install -d "$pkgdir"/usr/share/{wallpapers,sounds,plymouth/themes,grub/themes,pixmaps,veyra/branding}
+    cp -r --no-preserve=ownership "$s/wallpapers/Veyra" "$pkgdir/usr/share/wallpapers/"
+    cp -r --no-preserve=ownership "$s/sounds/veyra" "$pkgdir/usr/share/sounds/"
+    cp -r --no-preserve=ownership "$s/plymouth/veyra" "$pkgdir/usr/share/plymouth/themes/"
+    cp -r --no-preserve=ownership "$s/grub/veyra" "$pkgdir/usr/share/grub/themes/"
+    cp -r --no-preserve=ownership "$s/icons" "$pkgdir/usr/share/"
+    install -m644 "$s"/logo/*.svg "$pkgdir/usr/share/veyra/branding/"
+    install -m644 "$s/logo/veyraos-mark.svg" "$pkgdir/usr/share/pixmaps/veyraos-logo.svg"
+    install -m644 "$s/logo/veyraos-wordmark-on-dark.svg" "$pkgdir/usr/share/pixmaps/veyraos-logo-white.svg"
+    install -m644 "$s/logo/veyraos-wordmark.svg" "$pkgdir/usr/share/pixmaps/veyraos-wordmark.svg"
+    find "$pkgdir" -type d -exec chmod 755 {} + ; find "$pkgdir" -type f -exec chmod 644 {} +
+}

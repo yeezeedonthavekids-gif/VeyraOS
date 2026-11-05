@@ -1,0 +1,32 @@
+# Maintainer: VeyraOS Project
+# Sources live in src/ of the VeyraOS repository; build/build-iso.sh exports
+# VEYRA_SRC. Building by hand: VEYRA_SRC=$PWD/../../src makepkg -d
+pkgname=veyra-apps
+pkgver=2026.11
+pkgrel=1
+pkgdesc="VeyraOS applications: Control, Software, Updates, Welcome, Gaming Mode"
+arch=('any')
+url="https://github.com/yeezeedonthavekids-gif/veyraos"
+license=('GPL-3.0-or-later')
+depends=('python' 'pyside6' 'polkit' 'pacman-contrib' 'libnotify' 'veyra-nvidia' 'veyra-system')
+optdepends=('flatpak: Flathub apps in Software'
+            'timeshift: restore points'
+            'cronie: scheduled automatic updates'
+            'steam: Steam Play setup'
+            'kde-cli-tools: theme switching')
+
+check() {
+    local s="${VEYRA_SRC:-$startdir/../../src}/apps"
+    python -m compileall -q "$s/usr/lib/veyra/python"
+    bash -n "$s/usr/lib/veyra/veyra-helper"
+    bash -n "$s/usr/lib/veyra/auto-update"
+}
+
+package() {
+    local s="${VEYRA_SRC:-$startdir/../../src}/apps"
+    cp -r --no-preserve=ownership "$s/." "$pkgdir/"
+    find "$pkgdir" -name __pycache__ -prune -exec rm -rf {} +
+    python -m compileall -q -d /usr/lib/veyra/python "$pkgdir/usr/lib/veyra/python"
+    chmod 755 "$pkgdir"/usr/bin/* "$pkgdir/usr/lib/veyra/veyra-helper" "$pkgdir/usr/lib/veyra/auto-update"
+    chmod 644 "$pkgdir/etc/cron.d/veyra-auto-update"
+}

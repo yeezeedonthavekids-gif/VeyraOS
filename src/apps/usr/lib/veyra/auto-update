@@ -1,0 +1,39 @@
+#!/bin/bash
+# Scheduled update job (cronie, as root). Mode from /etc/veyra/auto-update.conf:
+#   off       nothing
+#   notify    nothing here (the desktop notifier checks and tells the user)
+#   download  download pending updates into the package cache WITHOUT touching
+#             the sync database (checkupdates -d) — installing later is quick
+#             and partial upgrades are impossible
+#   install   full upgrade (pacman -Syu). Opt-in. Skipped on battery power,
+#             while Gaming Mode is active, or on the live medium. A restore
+#             point is taken first by the VeyraOS pacman hook (if Timeshift
+#             is set up).
+# Note: Arch/Artix are rolling releases with no separate "security-only"
+# channel; security fixes arrive as normal updates.
+set -uo pipefail
+export PATH=/usr/bin:/usr/sbin:/bin:/sbin
+MODE=notify
+[[ -r /etc/veyra/auto-update.conf ]] && source /etc/veyra/auto-update.conf
+LOG=/var/log/veyra-auto-update.log
+log() { printf '%s %s\n' "$(date -Is)" "$*" >> "$LOG"; }
+
+[[ -e /run/veyra/sfs ]] && exit 0
+case $MODE in
+    off|notify) exit 0 ;;
+    download)
+        command -v checkupdates >/dev/null || { log "checkupdates missing (pacman-contrib)"; exit 1; }
+        if out=$(checkupdates -d 2>&1); then log "downloaded: $(wc -l <<< "$out") updates"; fi
+        ;;
+    install)
+        if [[ -e /run/veyra/gaming-mode/active ]]; then log "skipped: Gaming Mode active"; exit 0; fi
+        for b in /sys/class/power_supply/*/online; do
+            [[ -e $b && $(cat "$b") == 0 ]] && { log "skipped: on battery"; exit 0; }
+        done
+        if fuser /var/lib/pacman/db.lck >/dev/null 2>&1 || [[ -e /var/lib/pacman/db.lck ]]; then
+            log "skipped: pacman is busy"; exit 0
+        fi
+        log "installing updates"
+        if pacman -Syu --noconfirm >> "$LOG" 2>&1; then log "update finished"; else log "update FAILED (see above)"; fi
+        ;;
+esac

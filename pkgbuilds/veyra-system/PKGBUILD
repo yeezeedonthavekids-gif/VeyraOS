@@ -1,0 +1,29 @@
+# Maintainer: VeyraOS Project
+# Sources live in src/ of the VeyraOS repository; build/build-iso.sh exports
+# VEYRA_SRC. Building by hand: VEYRA_SRC=$PWD/../../src makepkg -d
+pkgname=veyra-system
+pkgver=2026.11
+pkgrel=1
+pkgdesc="VeyraOS system defaults: OpenRC services (zram, firewall, first boot), security settings, pacman hooks"
+arch=('any')
+url="https://github.com/yeezeedonthavekids-gif/veyraos"
+license=('GPL-3.0-or-later')
+depends=('openrc' 'nftables' 'sudo' 'util-linux' 'pacman' 'python')
+optdepends=('timeshift: automatic restore points before updates'
+            'flatpak: Flathub support')
+install=veyra-system.install
+backup=('etc/conf.d/veyra-zram'
+        'etc/veyra/firewall/base.nft'
+        'etc/veyra/snapshots.conf'
+        'etc/sysctl.d/90-veyra.conf'
+        'etc/sudoers.d/00-veyra'
+        'etc/rc.conf.d/veyra.conf')
+
+package() {
+    local s="${VEYRA_SRC:-$startdir/../../src}/system"
+    cp -r --no-preserve=ownership "$s/." "$pkgdir/"
+    find "$pkgdir" -name .keep -delete
+    chmod 750 "$pkgdir/etc/sudoers.d"
+    chmod 440 "$pkgdir/etc/sudoers.d/00-veyra"
+    chmod 755 "$pkgdir"/etc/init.d/* "$pkgdir"/usr/bin/* "$pkgdir"/usr/lib/veyra/*
+}

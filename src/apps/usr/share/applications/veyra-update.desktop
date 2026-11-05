@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Updates
+GenericName=Update Manager
+Comment=Check for and install system and app updates
+Exec=veyra-update
+Icon=system-software-update
+Categories=System;PackageManager;
+Keywords=update;upgrade;windows update;security;

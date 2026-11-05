@@ -1,0 +1,8 @@
+post_install() {
+    /usr/lib/veyra/write-os-release || true
+    echo ":: VeyraOS services are enabled by the installer. To enable manually:"
+    echo "   rc-update add veyra-zram boot; rc-update add veyra-firewall default"
+}
+post_upgrade() {
+    /usr/lib/veyra/write-os-release || true
+}

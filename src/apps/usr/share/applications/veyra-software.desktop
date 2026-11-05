@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Software
+GenericName=App Store
+Comment=Find and install applications
+Exec=veyra-software
+Icon=system-software-install
+Categories=System;PackageManager;
+Keywords=store;apps;install;download;flatpak;flathub;programs;
+StartupWMClass=veyra-software

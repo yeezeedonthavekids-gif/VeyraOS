@@ -1,0 +1,18 @@
+# Maintainer: VeyraOS Project
+# Sources live in src/ of the VeyraOS repository; build/build-iso.sh exports
+# VEYRA_SRC. Building by hand: VEYRA_SRC=$PWD/../../src makepkg -d
+pkgname=veyra-live
+pkgver=2026.11
+pkgrel=1
+pkgdesc="VeyraOS live medium support (initramfs boot hook, live session service). Removed by the installer."
+arch=('any')
+url="https://github.com/yeezeedonthavekids-gif/veyraos"
+license=('GPL-3.0-or-later')
+depends=('mkinitcpio' 'squashfs-tools' 'util-linux' 'openrc')
+
+package() {
+    local s="${VEYRA_SRC:-$startdir/../../src}/live"
+    cp -r --no-preserve=ownership "$s/." "$pkgdir/"
+    chmod 755 "$pkgdir/etc/init.d/veyra-live"
+    chmod 644 "$pkgdir"/usr/lib/initcpio/hooks/veyralive "$pkgdir"/usr/lib/initcpio/install/veyralive
+}

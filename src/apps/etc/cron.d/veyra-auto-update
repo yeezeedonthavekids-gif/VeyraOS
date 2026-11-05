@@ -1,0 +1,4 @@
+# VeyraOS automatic updates (mode: /etc/veyra/auto-update.conf, set in VeyraOS Control)
+SHELL=/bin/bash
+PATH=/usr/bin:/usr/sbin:/bin:/sbin
+23 */6 * * * root /usr/lib/veyra/auto-update

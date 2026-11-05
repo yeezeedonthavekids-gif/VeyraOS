@@ -1,0 +1,9 @@
+#!/usr/bin/python3
+# VeyraOS launcher — the application code lives in /usr/lib/veyra/python/veyra
+import os
+import sys
+
+sys.path.insert(0, os.environ.get("VEYRA_PYTHONPATH", "/usr/lib/veyra/python"))
+from veyra.software.app import main  # noqa: E402
+
+sys.exit(main())

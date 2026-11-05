@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Gaming Mode
+Comment=Turn Gaming Mode on or off (Meta+G)
+Exec=veyra-gaming-mode toggle
+Icon=input-gaming
+Categories=Game;Utility;
+Keywords=game;performance;focus;do not disturb;
+X-KDE-StartupNotify=false
