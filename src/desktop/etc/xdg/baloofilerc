@@ -1,0 +1,9 @@
+# File search: index file NAMES only (fast, tiny resource use).
+# Full-text content indexing can be enabled in Settings > Search.
+[Basic Settings]
+Indexing-Enabled=true
+
+[General]
+only basic indexing=true
+index hidden folders=false
+exclude folders[$e]=$HOME/.local/share/Steam/,$HOME/.steam/,$HOME/Games/,$HOME/.wine/,$HOME/.cache/

@@ -47,6 +47,8 @@ if loadfont /boot/grub/fonts/unicode.pf2 ; then
     terminal_output gfxterm
 fi
 if [ -f /boot/grub/themes/veyra/theme.txt ] ; then
+    loadfont /boot/grub/themes/veyra/veyra-16.pf2
+    loadfont /boot/grub/themes/veyra/veyra-24.pf2
     set theme=/boot/grub/themes/veyra/theme.txt
 else
     set menu_color_normal=light-gray/black
@@ -67,7 +69,7 @@ menuentry "Start ${name} ${version}${suffix}" --class veyra --class gnu-linux --
 EOF
             if ((first)); then
                 cat <<EOF
-menuentry "Start ${name} — load into RAM (frees the USB drive)" --class veyra --id veyra-ram {
+menuentry "Start ${name} (load into RAM)" --class veyra --id veyra-ram {
     linux /boot/vmlinuz-${k} veyra.label=${label} veyra.copytoram=1 ${cmdline}
     initrd${ucode} /boot/initramfs-${k}.img
 }

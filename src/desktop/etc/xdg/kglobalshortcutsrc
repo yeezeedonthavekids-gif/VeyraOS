@@ -1,0 +1,47 @@
+# VeyraOS default keyboard shortcuts (Windows equivalents).
+# Format: action=current shortcut(s),default shortcut(s),description
+# Multiple shortcuts are separated by a TAB.
+
+[kwin]
+Overview=Meta+Tab	Meta+W,Meta+W,Task View (Overview)
+Window Maximize=Meta+Up	Meta+PgUp,Meta+PgUp,Maximize Window
+Window Minimize=Meta+Down	Meta+PgDown,Meta+PgDown,Minimize Window
+Window Quick Tile Top=none,Meta+Up,Quick Tile Window to the Top
+Window Quick Tile Bottom=none,Meta+Down,Quick Tile Window to the Bottom
+Window Quick Tile Left=Meta+Left,Meta+Left,Snap Window Left
+Window Quick Tile Right=Meta+Right,Meta+Right,Snap Window Right
+Show Desktop=Meta+D,Meta+D,Show Desktop
+Window Close=Alt+F4,Alt+F4,Close Window
+Edit Tiles=Meta+Z,Meta+T,Snap Layouts (Tile Editor)
+Walk Through Windows=Alt+Tab,Alt+Tab,Switch Windows
+Walk Through Windows (Reverse)=Alt+Shift+Tab,Alt+Shift+Tab,Switch Windows (Reverse)
+Switch to Next Desktop=Meta+Ctrl+Right,none,Next Virtual Desktop
+Switch to Previous Desktop=Meta+Ctrl+Left,none,Previous Virtual Desktop
+
+[ksmserver]
+Lock Session=Meta+L	Screensaver,Meta+L	Screensaver,Lock
+
+[services][org.kde.dolphin.desktop]
+_launch=Meta+E
+
+[services][org.kde.konsole.desktop]
+_launch=Ctrl+Alt+T
+
+[services][org.kde.plasma-systemmonitor.desktop]
+_launch=Ctrl+Shift+Esc
+
+[services][systemsettings.desktop]
+_launch=Meta+I
+
+[services][org.kde.krunner.desktop]
+_launch=Meta+S	Alt+Space	Search
+
+[services][org.kde.spectacle.desktop]
+_launch=Print
+RectangularRegionScreenShot=Meta+Shift+S
+
+[services][veyra-gaming-mode.desktop]
+_launch=Meta+G
+
+[plasmashell]
+show-on-mouse-pos=Meta+V,Meta+V,Clipboard History

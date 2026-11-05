@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=VeyraOS
+Description=VeyraOS boot animation
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/veyra
+ScriptFile=/usr/share/plymouth/themes/veyra/veyra.script

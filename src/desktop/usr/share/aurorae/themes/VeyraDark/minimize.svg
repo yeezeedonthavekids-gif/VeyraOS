@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="46" height="288">
+  <g id="active-center" transform="translate(0,0)"><rect x="0" y="0" width="46" height="32" fill="#000" fill-opacity="0"/><line x1="18.0" y1="16.5" x2="28.0" y2="16.5" fill="none" stroke="#ECEDF5" stroke-width="1" shape-rendering="crispEdges"/></g>
+  <g id="hover-center" transform="translate(0,36)"><rect x="0" y="0" width="46" height="32" fill="#FFFFFF" fill-opacity="0.08"/><line x1="18.0" y1="16.5" x2="28.0" y2="16.5" fill="none" stroke="#ECEDF5" stroke-width="1" shape-rendering="crispEdges"/></g>
+  <g id="pressed-center" transform="translate(0,72)"><rect x="0" y="0" width="46" height="32" fill="#FFFFFF" fill-opacity="0.05"/><line x1="18.0" y1="16.5" x2="28.0" y2="16.5" fill="none" stroke="#ECEDF5" stroke-width="1" shape-rendering="crispEdges"/></g>
+  <g id="deactivated-center" transform="translate(0,108)"><rect x="0" y="0" width="46" height="32" fill="#000" fill-opacity="0"/><line x1="18.0" y1="16.5" x2="28.0" y2="16.5" fill="none" stroke="#7C7F98" stroke-width="1" shape-rendering="crispEdges"/></g>
+  <g id="inactive-center" transform="translate(0,144)"><rect x="0" y="0" width="46" height="32" fill="#000" fill-opacity="0"/><line x1="18.0" y1="16.5" x2="28.0" y2="16.5" fill="none" stroke="#7C7F98" stroke-width="1" shape-rendering="crispEdges"/></g>
+  <g id="hover-inactive-center" transform="translate(0,180)"><rect x="0" y="0" width="46" height="32" fill="#FFFFFF" fill-opacity="0.08"/><line x1="18.0" y1="16.5" x2="28.0" y2="16.5" fill="none" stroke="#ECEDF5" stroke-width="1" shape-rendering="crispEdges"/></g>
+  <g id="pressed-inactive-center" transform="translate(0,216)"><rect x="0" y="0" width="46" height="32" fill="#FFFFFF" fill-opacity="0.05"/><line x1="18.0" y1="16.5" x2="28.0" y2="16.5" fill="none" stroke="#ECEDF5" stroke-width="1" shape-rendering="crispEdges"/></g>
+  <g id="deactivated-inactive-center" transform="translate(0,252)"><rect x="0" y="0" width="46" height="32" fill="#000" fill-opacity="0"/><line x1="18.0" y1="16.5" x2="28.0" y2="16.5" fill="none" stroke="#7C7F98" stroke-width="1" shape-rendering="crispEdges"/></g>
+</svg>

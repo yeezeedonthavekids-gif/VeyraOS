@@ -1,0 +1,61 @@
+# VeyraOS GRUB theme
+title-text: ""
+desktop-image: "background.png"
+desktop-color: "#05060F"
+terminal-font: "Veyra Regular 16"
+terminal-box: "terminal_box_*.png"
+terminal-left: "0"
+terminal-top: "0"
+terminal-width: "100%"
+terminal-height: "100%"
+terminal-border: "0"
+
++ image {
+    top = 18%
+    left = 50%-48
+    width = 96
+    height = 96
+    file = "logo.png"
+}
+
++ boot_menu {
+    left = 50%-320
+    top = 38%
+    width = 640
+    height = 44%
+    item_font = "Veyra Regular 16"
+    item_color = "#C9CCE0"
+    selected_item_color = "#FFFFFF"
+    selected_item_font = "Veyra Regular 16"
+    item_height = 40
+    item_padding = 12
+    item_spacing = 6
+    icon_width = 28
+    icon_height = 28
+    item_icon_space = 14
+    selected_item_pixmap_style = "select_*.png"
+    scrollbar = true
+    scrollbar_width = 6
+    scrollbar_thumb = "scroll_thumb_*.png"
+}
+
++ label {
+    top = 90%
+    left = 0
+    width = 100%
+    align = "center"
+    id = "__timeout__"
+    text = "Starting automatically in %d seconds"
+    color = "#8A8FB0"
+    font = "Veyra Regular 16"
+}
+
++ label {
+    top = 94%
+    left = 0
+    width = 100%
+    align = "center"
+    text = "↑↓ choose   Enter start   E edit   C command line"
+    color = "#5C6080"
+    font = "Veyra Regular 16"
+}

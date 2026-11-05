@@ -1,0 +1,32 @@
+[General]
+ColorScheme=VeyraLight
+font=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+menuFont=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+toolBarFont=Inter,9,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+smallestReadableFont=Inter,8,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+fixed=JetBrains Mono,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+TerminalApplication=konsole
+TerminalService=org.kde.konsole.desktop
+
+[WM]
+activeFont=Inter,10,-1,5,500,0,0,0,0,0,0,0,0,0,0,1
+
+[KDE]
+LookAndFeelPackage=org.veyraos.desktop
+DefaultLightLookAndFeel=org.veyraos.desktop
+DefaultDarkLookAndFeel=org.veyraos.desktop.dark
+widgetStyle=Breeze
+SingleClick=false
+AnimationDurationFactor=0.7071067811865475
+ShowDeleteCommand=false
+
+[Icons]
+Theme=Papirus
+
+[Sounds]
+Enable=true
+Theme=veyra
+
+[KFileDialog Settings]
+Show hidden files=false
+Sort directories first=true

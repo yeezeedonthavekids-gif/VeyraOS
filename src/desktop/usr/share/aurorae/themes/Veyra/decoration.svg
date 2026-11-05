@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="49" height="49">
+  <defs>
+    <linearGradient id="decoration_sh_top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.120"/></linearGradient>
+    <linearGradient id="decoration_sh_bottom" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.200"/></linearGradient>
+    <linearGradient id="decoration_sh_left" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.160"/></linearGradient>
+    <linearGradient id="decoration_sh_right" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.160"/></linearGradient>
+    <radialGradient id="decoration_sh_corner" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#000" stop-opacity="0.160"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="decoration_sh_c_tl" cx="24" cy="24" r="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0.333" stop-color="#000" stop-opacity="0.160"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="decoration_sh_c_tr" cx="0" cy="24" r="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0.333" stop-color="#000" stop-opacity="0.160"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="decoration_sh_c_bl" cx="17" cy="0" r="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0.000" stop-color="#000" stop-opacity="0.160"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="decoration_sh_c_br" cx="0" cy="0" r="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0.000" stop-color="#000" stop-opacity="0.160"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <linearGradient id="decoration_inactive_sh_top" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.072"/></linearGradient>
+    <linearGradient id="decoration_inactive_sh_bottom" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.120"/></linearGradient>
+    <linearGradient id="decoration_inactive_sh_left" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.096"/></linearGradient>
+    <linearGradient id="decoration_inactive_sh_right" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.096"/></linearGradient>
+    <radialGradient id="decoration_inactive_sh_corner" cx="0" cy="0" r="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#000" stop-opacity="0.096"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="decoration_inactive_sh_c_tl" cx="24" cy="24" r="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0.333" stop-color="#000" stop-opacity="0.096"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="decoration_inactive_sh_c_tr" cx="0" cy="24" r="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0.333" stop-color="#000" stop-opacity="0.096"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="decoration_inactive_sh_c_bl" cx="17" cy="0" r="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0.000" stop-color="#000" stop-opacity="0.096"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="decoration_inactive_sh_c_br" cx="0" cy="0" r="16" gradientUnits="userSpaceOnUse">
+      <stop offset="0.000" stop-color="#000" stop-opacity="0.096"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g id="decoration-topleft">
+    <rect x="0" y="0" width="24" height="24" fill="#000" fill-opacity="0"/>
+    <circle cx="24" cy="24" r="24" fill="url(#decoration_sh_c_tl)"/>
+    <path d="M16 24 A8 8 0 0 1 24 16 L24 24 Z" fill="rgb(243,243,247)" stroke="#D6D6DE" stroke-width="1"/>
+  </g>
+  <g id="decoration-top">
+    <rect x="0" y="0" width="1" height="16" fill="url(#decoration_sh_top)"/>
+    <rect x="0" y="16" width="1" height="8" fill="rgb(243,243,247)"/>
+    <rect x="0" y="16" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-topright">
+    <rect x="0" y="0" width="24" height="24" fill="#000" fill-opacity="0"/>
+    <circle cx="0" cy="24" r="24" fill="url(#decoration_sh_c_tr)"/>
+    <path d="M8 24 A8 8 0 0 0 0 16 L0 24 Z" fill="rgb(243,243,247)" stroke="#D6D6DE" stroke-width="1"/>
+  </g>
+  <g id="decoration-left">
+    <rect x="0" y="0" width="16" height="1" fill="url(#decoration_sh_left)"/>
+    <rect x="16" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-center">
+    <rect x="0" y="0" width="1" height="1" fill="rgb(243,243,247)"/>
+  </g>
+  <g id="decoration-right">
+    <rect x="1" y="0" width="16" height="1" fill="url(#decoration_sh_right)"/>
+    <rect x="0" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-bottomleft">
+    <rect x="0" y="0" width="17" height="17" fill="#000" fill-opacity="0"/>
+    <circle cx="17" cy="0" r="16" fill="url(#decoration_sh_c_bl)"/>
+    <rect x="16" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-bottom">
+    <rect x="0" y="1" width="1" height="16" fill="url(#decoration_sh_bottom)"/>
+    <rect x="0" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-bottomright">
+    <rect x="0" y="0" width="17" height="17" fill="#000" fill-opacity="0"/>
+    <circle cx="0" cy="0" r="16" fill="url(#decoration_sh_c_br)"/>
+    <rect x="0" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-inactive-topleft">
+    <rect x="0" y="0" width="24" height="24" fill="#000" fill-opacity="0"/>
+    <circle cx="24" cy="24" r="24" fill="url(#decoration_inactive_sh_c_tl)"/>
+    <path d="M16 24 A8 8 0 0 1 24 16 L24 24 Z" fill="rgb(243,243,247)" stroke="#D6D6DE" stroke-width="1"/>
+  </g>
+  <g id="decoration-inactive-top">
+    <rect x="0" y="0" width="1" height="16" fill="url(#decoration_inactive_sh_top)"/>
+    <rect x="0" y="16" width="1" height="8" fill="rgb(243,243,247)"/>
+    <rect x="0" y="16" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-inactive-topright">
+    <rect x="0" y="0" width="24" height="24" fill="#000" fill-opacity="0"/>
+    <circle cx="0" cy="24" r="24" fill="url(#decoration_inactive_sh_c_tr)"/>
+    <path d="M8 24 A8 8 0 0 0 0 16 L0 24 Z" fill="rgb(243,243,247)" stroke="#D6D6DE" stroke-width="1"/>
+  </g>
+  <g id="decoration-inactive-left">
+    <rect x="0" y="0" width="16" height="1" fill="url(#decoration_inactive_sh_left)"/>
+    <rect x="16" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-inactive-center">
+    <rect x="0" y="0" width="1" height="1" fill="rgb(243,243,247)"/>
+  </g>
+  <g id="decoration-inactive-right">
+    <rect x="1" y="0" width="16" height="1" fill="url(#decoration_inactive_sh_right)"/>
+    <rect x="0" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-inactive-bottomleft">
+    <rect x="0" y="0" width="17" height="17" fill="#000" fill-opacity="0"/>
+    <circle cx="17" cy="0" r="16" fill="url(#decoration_inactive_sh_c_bl)"/>
+    <rect x="16" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-inactive-bottom">
+    <rect x="0" y="1" width="1" height="16" fill="url(#decoration_inactive_sh_bottom)"/>
+    <rect x="0" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+  <g id="decoration-inactive-bottomright">
+    <rect x="0" y="0" width="17" height="17" fill="#000" fill-opacity="0"/>
+    <circle cx="0" cy="0" r="16" fill="url(#decoration_inactive_sh_c_br)"/>
+    <rect x="0" y="0" width="1" height="1" fill="#D6D6DE"/>
+  </g>
+</svg>

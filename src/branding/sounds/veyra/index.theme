@@ -1,0 +1,8 @@
+[Sound Theme]
+Name=VeyraOS
+Comment=VeyraOS system sounds
+Inherits=ocean,freedesktop
+Directories=stereo
+
+[stereo]
+OutputProfile=stereo

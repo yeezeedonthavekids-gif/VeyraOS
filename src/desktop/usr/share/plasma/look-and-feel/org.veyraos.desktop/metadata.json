@@ -1,0 +1,14 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [ { "Name": "VeyraOS Project" } ],
+        "Category": "",
+        "Description": "VeyraOS light theme: centered taskbar, Windows-style controls",
+        "Id": "org.veyraos.desktop",
+        "License": "GPL-2.0-or-later",
+        "Name": "VeyraOS Light",
+        "Version": "1.0",
+        "Website": "https://github.com/yeezeedonthavekids-gif/veyraos"
+    },
+    "X-Plasma-APIVersion": "2"
+}

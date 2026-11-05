@@ -51,6 +51,12 @@ if [[ -f /usr/share/applications/veyra-install.desktop ]]; then
     install -m755 -o "$LIVE_USER" -g "$LIVE_USER" /usr/share/applications/veyra-install.desktop "$DESK/"
 fi
 
+# Live session: no screen lock / auto-suspend (the live user has no password)
+install -d -o "$LIVE_USER" -g "$LIVE_USER" "/home/$LIVE_USER/.config"
+for f in kscreenlockerrc powermanagementprofilesrc; do
+    install -m644 -o "$LIVE_USER" -g "$LIVE_USER" "/usr/share/veyra/live/$f" "/home/$LIVE_USER/.config/$f"
+done
+
 # ---- Display manager: autologin into Plasma on the live medium --------------
 log "display manager"
 install -Dm644 /dev/stdin /etc/sddm.conf.d/20-veyra-live.conf <<EOF

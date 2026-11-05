@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""Give KDE applications familiar (Windows-style) names in the Start menu and
+taskbar, e.g. Dolphin -> "File Explorer", System Monitor -> "Task Manager".
+
+Writes per-user overrides to ~/.local/share/applications/<id>.desktop that are
+regenerated from the current system file at every login, so upstream changes
+(Exec lines, actions) are always picked up. Files the user created or edited
+themselves (no X-Veyra-Generated marker) are never touched.
+Disable with:  echo off > ~/.config/veyra/friendly-names
+"""
+import os
+import sys
+
+NAMES = {
+    "org.kde.dolphin": "File Explorer",
+    "org.kde.konsole": "Terminal",
+    "systemsettings": "Settings",
+    "org.kde.plasma-systemmonitor": "Task Manager",
+    "org.kde.spectacle": "Screenshot",
+    "org.kde.kate": "Text Editor",
+    "org.kde.gwenview": "Photos",
+    "org.kde.okular": "Document Viewer",
+    "org.kde.ark": "Archive Manager",
+    "org.kde.kcalc": "Calculator",
+    "org.kde.partitionmanager": "Disk Management",
+    "org.kde.filelight": "Disk Usage",
+    "org.kde.haruna": "Media Player",
+    "vlc": "Media Player",
+    "org.kde.elisa": "Music",
+    "org.kde.kinfocenter": "System Information",
+    "org.kde.kwalletmanager": "Password Wallet",
+}
+MARK = "X-Veyra-Generated=true"
+
+
+def system_dirs():
+    dirs = os.environ.get("XDG_DATA_DIRS", "/usr/local/share:/usr/share").split(":")
+    return [os.path.join(d, "applications") for d in dirs if d]
+
+
+def transform(text, name):
+    out, in_main, done = [], False, False
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("["):
+            if in_main and not done:
+                out.append(MARK)
+                done = True
+            in_main = s == "[Desktop Entry]"
+        elif in_main and (s.startswith("Name=") or s.startswith("Name[")):
+            if s.startswith("Name="):
+                out.append("Name=" + name)
+                out.append("X-Veyra-OriginalName=" + s[5:])
+            continue   # drop localized names: the friendly name is shown in every language
+        out.append(line)
+    if in_main and not done:
+        out.append(MARK)
+    return "\n".join(out) + "\n"
+
+
+def main():
+    home = os.path.expanduser("~")
+    cfg = os.path.join(os.environ.get("XDG_CONFIG_HOME", os.path.join(home, ".config")), "veyra", "friendly-names")
+    target = os.path.join(os.environ.get("XDG_DATA_HOME", os.path.join(home, ".local", "share")), "applications")
+    disabled = os.path.exists(cfg) and open(cfg).read().strip() == "off"
+    os.makedirs(target, exist_ok=True)
+    changed = 0
+    for app_id, name in NAMES.items():
+        dst = os.path.join(target, app_id + ".desktop")
+        if os.path.exists(dst):
+            try:
+                if MARK not in open(dst, encoding="utf-8").read():
+                    continue  # user's own file: leave it alone
+            except OSError:
+                continue
+        src = next((os.path.join(d, app_id + ".desktop") for d in system_dirs()
+                    if os.path.isfile(os.path.join(d, app_id + ".desktop"))), None)
+        if disabled or src is None:
+            if os.path.exists(dst):
+                os.remove(dst)
+                changed += 1
+            continue
+        new = transform(open(src, encoding="utf-8").read(), name)
+        if not os.path.exists(dst) or open(dst, encoding="utf-8").read() != new:
+            tmp = dst + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                f.write(new)
+            os.replace(tmp, dst)
+            changed += 1
+    return changed
+
+
+if __name__ == "__main__":
+    n = main()
+    if "-v" in sys.argv:
+        print(f"{n} launcher(s) updated")

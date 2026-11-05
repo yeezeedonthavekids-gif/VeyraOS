@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=VeyraOS familiar app names
+Exec=/usr/lib/veyra/friendly-names
+NoDisplay=true
+X-KDE-autostart-phase=0
+OnlyShowIn=KDE;

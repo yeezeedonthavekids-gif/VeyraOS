@@ -38,18 +38,42 @@ _vl_fail() {
     launch_interactive_shell
 }
 
-_vl_find_medium() {
-    # Waits up to ~45 s for the labelled medium (slow USB controllers/hubs).
+_vl_candidates() {
+    # Block devices that may hold the medium, most likely first.
+    # A hybrid ISO written to a USB stick carries a partition table; blkid then
+    # reports the label only on a partition (e.g. the HFS+/EFI entries), while
+    # the iso9660 filesystem lives on the WHOLE disk. So for every labelled
+    # partition its parent disk is tried first.
+    {
+        blkid -t "LABEL=$VL_LABEL" -o device 2>/dev/null
+        [ -e "/dev/disk/by-label/$VL_LABEL" ] && readlink -f "/dev/disk/by-label/$VL_LABEL"
+    } | sort -u | while read -r _vl_d; do
+        [ -b "$_vl_d" ] || continue
+        _vl_n=${_vl_d##*/}
+        if [ -e "/sys/class/block/$_vl_n/partition" ]; then
+            _vl_p=$(readlink -f "/sys/class/block/$_vl_n/..")
+            [ -b "/dev/${_vl_p##*/}" ] && echo "1 /dev/${_vl_p##*/}"
+            echo "2 $_vl_d"
+        else
+            echo "1 $_vl_d"
+        fi
+    done | sort -u | cut -d' ' -f2
+}
+
+_vl_mount_medium() {
+    # Waits up to ~45 s for the labelled medium (slow USB controllers/hubs),
+    # then mounts the first candidate that holds the root image.
     _vl_i=0
     while [ "$_vl_i" -lt 90 ]; do
-        _vl_dev=$(blkid -L "$VL_LABEL" 2>/dev/null)
-        if [ -z "$_vl_dev" ] && [ -e "/dev/disk/by-label/$VL_LABEL" ]; then
-            _vl_dev=$(readlink -f "/dev/disk/by-label/$VL_LABEL")
-        fi
-        if [ -n "$_vl_dev" ] && [ -b "$_vl_dev" ]; then
-            echo "$_vl_dev"
-            return 0
-        fi
+        for _vl_dev in $(_vl_candidates); do
+            if mount -t iso9660 -o ro "$_vl_dev" "$1" 2>/dev/null || mount -o ro "$_vl_dev" "$1" 2>/dev/null; then
+                if [ -f "$1/$VL_BASEDIR/x86_64/rootfs.sfs" ]; then
+                    echo "$_vl_dev"
+                    return 0
+                fi
+                umount "$1"
+            fi
+        done
         [ "$_vl_i" -eq 4 ] && msg ":: Waiting for the VeyraOS medium (label $VL_LABEL)..." >&2
         sleep 0.5
         _vl_i=$((_vl_i + 1))
@@ -78,14 +102,12 @@ veyra_mount_handler() {
     done
     mkdir -p "$_vl_run/medium" "$_vl_run/sfs" "$_vl_run/cow"
 
-    _vl_dev=$(_vl_find_medium) || { _vl_fail "no device with label '$VL_LABEL' was found"; return 1; }
+    _vl_dev=$(_vl_mount_medium "$_vl_run/medium") || {
+        _vl_fail "no mountable medium with label '$VL_LABEL' containing $VL_BASEDIR/x86_64/rootfs.sfs was found"
+        return 1
+    }
     msg ":: VeyraOS medium found at $_vl_dev"
-
-    if ! mount -o ro "$_vl_dev" "$_vl_run/medium" 2>/dev/null; then
-        mount -t iso9660 -o ro "$_vl_dev" "$_vl_run/medium" || { _vl_fail "cannot mount $_vl_dev"; return 1; }
-    fi
     _vl_img=$_vl_run/medium/$VL_BASEDIR/x86_64/rootfs.sfs
-    [ -f "$_vl_img" ] || { _vl_fail "root image $VL_BASEDIR/x86_64/rootfs.sfs is missing"; return 1; }
 
     if [ "$VL_VERIFY" = 1 ]; then
         msg ":: Verifying the root image (this takes a minute)..."

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>VeyraOS</title>
+  <defs>
+    <linearGradient id="vl" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#A78BFA"/>
+      <stop offset="1" stop-color="#6D28D9"/>
+    </linearGradient>
+    <linearGradient id="vr" x1="1" y1="0" x2="0.65" y2="1">
+      <stop offset="0" stop-color="#67E8F9"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="star" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E0E7FF"/>
+    </linearGradient>
+  </defs>
+  <!-- left facet -->
+  <path d="M18 40 Q14 34 22 34 H92 Q99 34 101 40 L128 122 V222 H112 Q104 222 101 215 Z" fill="url(#vl)"/>
+  <!-- right facet -->
+  <path d="M238 40 Q242 34 234 34 H164 Q157 34 155 40 L128 122 V222 H144 Q152 222 155 215 Z" fill="url(#vr)"/>
+  <!-- facet seam highlight -->
+  <path d="M128 122 V222" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="2"/>
+  <!-- the star ("Vega") in the notch -->
+  <path d="M128 40 C130 58 134 62 150 64 C134 66 130 70 128 88 C126 70 122 66 106 64 C122 62 126 58 128 40 Z" fill="url(#star)"/>
+</svg>

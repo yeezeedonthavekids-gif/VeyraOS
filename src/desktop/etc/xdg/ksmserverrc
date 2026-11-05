@@ -1,0 +1,4 @@
+[General]
+# Start with an empty session (like Windows) — faster login
+loginMode=emptySession
+confirmLogout=true

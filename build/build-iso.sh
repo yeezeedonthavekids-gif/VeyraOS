@@ -250,16 +250,13 @@ stage_image() {
         install -Dm644 "$ROOT/boot/memtest86+/memtest.efi" "$ISO/boot/memtest86+/memtest.efi"
     fi
 
-    # GRUB font + theme (from veyra-branding)
-    local font
-    font=$(find "$ROOT/usr/share/fonts" -iname 'Inter*Regular*.tt*' -o -iname 'DejaVuSans.ttf' 2>/dev/null | head -1)
-    if [[ -n $font ]]; then
-        grub-mkfont -s 16 -o "$ISO/boot/grub/fonts/unicode.pf2" "$font"
-    else
-        cp /usr/share/grub/unicode.pf2 "$ISO/boot/grub/fonts/unicode.pf2"
-    fi
+    # GRUB console font + theme (theme from veyra-branding, incl. its fonts)
+    cp /usr/share/grub/unicode.pf2 "$ISO/boot/grub/fonts/unicode.pf2"
     if [[ -d $ROOT/usr/share/grub/themes/veyra ]]; then
+        mkdir -p "$ISO/boot/grub/themes"
         cp -a "$ROOT/usr/share/grub/themes/veyra" "$ISO/boot/grub/themes/"
+    else
+        warn "GRUB theme not found in rootfs; using the plain menu"
     fi
     write_grub_cfg "$ISO" "$ISO_LABEL" "$LIVE_CMDLINE" "${KERNELS[@]}"
 

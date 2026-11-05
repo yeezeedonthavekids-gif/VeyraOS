@@ -1,0 +1,8 @@
+{
+    "KPlugin": {
+        "Authors": [ { "Name": "VeyraOS Project" } ],
+        "Id": "Veyra",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Aurora (VeyraOS)"
+    }
+}

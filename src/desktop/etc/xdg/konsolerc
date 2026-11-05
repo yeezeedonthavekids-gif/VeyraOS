@@ -1,0 +1,10 @@
+[Desktop Entry]
+DefaultProfile=Veyra.profile
+
+[MainWindow]
+MenuBar=Disabled
+ToolBarsMovable=Disabled
+
+[TabBar]
+NewTabButton=true
+CloseTabOnMiddleMouseButton=true
