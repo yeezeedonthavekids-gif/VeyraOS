@@ -54,7 +54,9 @@ fi
 
 # 5. Graphics drivers: keep NVIDIA only where it is supported -------------------
 log "configuring graphics drivers"
-/usr/lib/veyra/nvidia-setup auto || { log "WARNING: nvidia-setup reported a problem"; fail=1; }
+# A driver problem must never abort the installation half-way (that would
+# leave an unbootable system); it is fixable afterwards in VeyraOS Control.
+/usr/lib/veyra/nvidia-setup auto || { log "WARNING: graphics driver setup reported a problem; run 'VeyraOS Control > Graphics > Re-run driver setup' after the first boot"; fail=1; }
 
 # 6. Security defaults for user homes --------------------------------------------
 for d in /home/*; do
@@ -71,5 +73,5 @@ if command -v plymouth-set-default-theme >/dev/null; then
     plymouth-set-default-theme veyra 2>/dev/null || true
 fi
 
-log "done"
-exit $fail
+if ((fail)); then log "done with warnings (see above)"; else log "done"; fi
+exit 0
