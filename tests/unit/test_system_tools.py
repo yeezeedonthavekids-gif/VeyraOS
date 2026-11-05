@@ -90,3 +90,43 @@ def test_friendly_names(tmp_path):
     (home / ".config/veyra/friendly-names").write_text("off")
     subprocess.run(["python3", script], env=env, check=True)
     assert not user.exists()
+
+
+def _nvidia_setup(tmp_path, lspci_lines, installed_pkgs):
+    """Run nvidia-setup in check (dry-run) mode with fake lspci/pacman."""
+    bindir = tmp_path / "bin"
+    bindir.mkdir(exist_ok=True)
+    lspci = _fake_lspci(tmp_path, lspci_lines)
+    (bindir / "veyra-gpu-detect").write_text(
+        f"#!/bin/sh\nVEYRA_LSPCI={lspci} exec bash {TOP}/src/nvidia/usr/bin/veyra-gpu-detect \"$@\"\n")
+    (bindir / "pacman").write_text(
+        "#!/bin/sh\n[ \"$1\" = -Q ] || exit 1\ncase \" " + " ".join(installed_pkgs) + " \" in *\" $2 \"*) exit 0;; esac\nexit 1\n")
+    for f in bindir.iterdir():
+        f.chmod(0o755)
+    script = (open(os.path.join(TOP, "src/nvidia/usr/lib/veyra/nvidia-setup")).read()
+              .replace("/usr/bin/veyra-gpu-detect", str(bindir / "veyra-gpu-detect")))
+    (tmp_path / "nvidia-setup").write_text(script)
+    env = dict(os.environ, PATH=f"{bindir}:{os.environ['PATH']}")
+    return subprocess.run(["bash", str(tmp_path / "nvidia-setup"), "check"], env=env, capture_output=True, text=True)
+
+
+AMD_GPU = "0000:03:00.0 VGA compatible controller [0300]: Advanced Micro Devices, Inc. [AMD/ATI] Navi 33 [1002:7480] (rev c7)"
+RTX5060 = "0000:01:00.0 VGA compatible controller [0300]: NVIDIA Corporation GB206 [GeForce RTX 5060] [10de:2d05] (rev a1)"
+
+
+def test_nvidia_setup_no_gpu_nothing_installed(tmp_path):
+    p = _nvidia_setup(tmp_path, [AMD_GPU], [])
+    assert p.returncode == 0, p.stdout + p.stderr
+    assert "would run" not in p.stdout          # nothing to remove, no empty pacman call
+
+
+def test_nvidia_setup_no_gpu_removes_driver(tmp_path):
+    p = _nvidia_setup(tmp_path, [AMD_GPU], ["nvidia-utils", "nvidia-open-dkms"])
+    assert p.returncode == 0, p.stderr
+    assert "pacman -Rns --noconfirm nvidia-open-dkms nvidia-utils" in p.stdout
+
+
+def test_nvidia_setup_rtx5060_keeps_driver(tmp_path):
+    p = _nvidia_setup(tmp_path, [RTX5060], ["nvidia-utils", "nvidia-open-dkms"])
+    assert p.returncode == 0, p.stderr
+    assert "-Rns" not in p.stdout and "class: open" in p.stdout

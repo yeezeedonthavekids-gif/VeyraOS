@@ -21,7 +21,7 @@ log() { echo "[nvidia-setup] $*"; }
 run() { if ((DRY)); then echo "  would run: $*"; else "$@"; fi; }
 
 NV_PKGS=(nvidia-open-dkms nvidia-open nvidia-utils lib32-nvidia-utils nvidia-settings opencl-nvidia lib32-opencl-nvidia libva-nvidia-driver)
-installed() { local p out=(); for p in "$@"; do pacman -Q "$p" >/dev/null 2>&1 && out+=("$p"); done; printf '%s\n' "${out[@]}"; }
+installed() { local p; for p in "$@"; do pacman -Q "$p" >/dev/null 2>&1 && echo "$p"; done; return 0; }
 
 class=$(/usr/bin/veyra-gpu-detect --nvidia-class)
 log "NVIDIA support class: $class"
