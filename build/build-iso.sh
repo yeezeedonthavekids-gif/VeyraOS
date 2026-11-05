@@ -164,7 +164,21 @@ stage_resolve() {
     # All VeyraOS packages from the local repo:
     pacman --config "$CONF" -Slq veyra | grep -vx veyra-calamares >> "$RESOLVED" || true
     sort -u -o "$RESOLVED" "$RESOLVED"
-    ok "$(wc -l < "$RESOLVED") packages selected"
+    # Early no-systemd check: expand every target (groups, provides) to the
+    # packages pacman would really install, without dependencies.
+    local -a targets; mapfile -t targets < "$RESOLVED"
+    if pacman --config "$CONF" -Sp --nodeps --nodeps --print-format '%n' "${targets[@]}" 2>/dev/null \
+            | grep -qxE 'systemd|systemd-libs|systemd-sysvcompat'; then
+        local t
+        for t in "${targets[@]}"; do
+            if pacman --config "$CONF" -Sp --nodeps --nodeps --print-format '%n %r' "$t" 2>/dev/null \
+                    | grep -qE '^systemd(-libs|-sysvcompat)? '; then
+                warn "manifest entry '$t' resolves to: $(pacman --config "$CONF" -Sp --nodeps --nodeps --print-format '%n(%r)' "$t" 2>/dev/null | grep -E '^systemd' | tr '\n' ' ')"
+            fi
+        done
+        die "a package manifest entry pulls in systemd (see above)"
+    fi
+    ok "$(wc -l < "$RESOLVED") packages selected (no systemd)"
 }
 
 # ---------------------------------------------------------------------------
