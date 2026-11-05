@@ -15,14 +15,17 @@ mkdir -p "$OUT"
 W=$(mktemp -d)
 trap 'rm -rf "$W"' EXIT
 
-label=$(xorriso -indev "$ISO" -pvd_info 2>/dev/null | sed -n 's/^Volume Id *: *//p' | tr -d "'" | xargs)
+echo "[check] reading ISO label"
+label=$(timeout 60 xorriso -indev "$ISO" -pvd_info 2>/dev/null | sed -n 's/^Volume Id *: *//p' | tr -d "'" | xargs)
 [[ -n $label ]] || { echo "cannot read volume label" >&2; exit 1; }
-osirrox -indev "$ISO" -extract /boot/vmlinuz-linux "$W/vmlinuz" -extract /boot/initramfs-linux.img "$W/initrd" >/dev/null 2>&1
+echo "[check] label=$label; extracting kernel + initramfs"
+timeout 120 osirrox -indev "$ISO" -extract /boot/vmlinuz-linux "$W/vmlinuz" -extract /boot/initramfs-linux.img "$W/initrd" >/dev/null 2>&1
 
 accel=(-accel tcg); mem=4096; wait_s=900
 if [[ -w /dev/kvm ]]; then accel=(-enable-kvm -cpu host); wait_s=300; fi
 cp /usr/share/OVMF/OVMF_VARS_4M.fd "$W/vars.fd"
 log=$OUT/serial.log
+echo "[check] booting (${accel[*]}), waiting up to ${wait_s}s for the display manager"
 qemu-system-x86_64 "${accel[@]}" -m $mem -smp 4 \
     -drive if=pflash,format=raw,readonly=on,file=/usr/share/OVMF/OVMF_CODE_4M.fd \
     -drive if=pflash,format=raw,file="$W/vars.fd" \
@@ -32,13 +35,14 @@ qemu-system-x86_64 "${accel[@]}" -m $mem -smp 4 \
     -device virtio-vga -display none -serial file:"$log" \
     -monitor unix:"$W/mon",server,nowait -no-reboot &
 qpid=$!
-shot() { printf 'screendump %s\n' "$W/s.ppm" | socat - UNIX-CONNECT:"$W/mon" >/dev/null 2>&1 && \
+shot() { printf 'screendump %s\n' "$W/s.ppm" | timeout 20 socat - UNIX-CONNECT:"$W/mon" >/dev/null 2>&1 && \
          convert "$W/s.ppm" "$OUT/$1.png" 2>/dev/null || true; }
 
 result=FAIL
 for ((t = 0; t < wait_s; t += 10)); do
     sleep 10
     if grep -qE "Starting (sddm|displaymanager)" "$log"; then result=PASS; break; fi
+    echo "[check] ${t}s: $(tail -c 300 "$log" | tr -d '\033' | tail -1 | cut -c1-120)"
     kill -0 $qpid 2>/dev/null || break
 done
 sleep 60   # let Plasma come up for the screenshot
