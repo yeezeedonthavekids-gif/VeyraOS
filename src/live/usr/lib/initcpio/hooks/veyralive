@@ -39,13 +39,15 @@ _vl_fail() {
 }
 
 _vl_candidates() {
-    # Block devices that may hold the medium, most likely first.
-    # A hybrid ISO written to a USB stick carries a partition table; blkid then
-    # reports the label only on a partition (e.g. the HFS+/EFI entries), while
-    # the iso9660 filesystem lives on the WHOLE disk. So for every labelled
-    # partition its parent disk is tried first.
+    # Block devices that may hold the medium, most likely first:
+    #   1  whole disks that carry the label, or whose partition carries it
+    #      (a hybrid ISO written to USB with Rufus/dd exposes the iso9660
+    #      filesystem on the WHOLE disk, the label often only on a partition)
+    #   2  labelled partitions
+    #   3  every other whole disk, 4 every other partition (fallback scan when
+    #      the label is not reported at all)
     {
-        blkid -t "LABEL=$VL_LABEL" -o device 2>/dev/null
+        timeout 10 blkid -t "LABEL=$VL_LABEL" -o device 2>/dev/null
         [ -e "/dev/disk/by-label/$VL_LABEL" ] && readlink -f "/dev/disk/by-label/$VL_LABEL"
     } | sort -u | while read -r _vl_d; do
         [ -b "$_vl_d" ] || continue
@@ -57,25 +59,40 @@ _vl_candidates() {
         else
             echo "1 $_vl_d"
         fi
-    done | sort -u | cut -d' ' -f2
+    done
+    for _vl_s in /sys/class/block/*; do
+        _vl_n=${_vl_s##*/}
+        case $_vl_n in loop*|ram*|zram*|dm-*|md*) continue ;; esac
+        [ -b "/dev/$_vl_n" ] || continue
+        if [ -e "$_vl_s/partition" ]; then echo "4 /dev/$_vl_n"; else echo "3 /dev/$_vl_n"; fi
+    done
+}
+
+_vl_sorted_candidates() {
+    # keep the best priority for each device, then order by priority
+    _vl_candidates | sort -k2,2 -k1,1n | awk '!seen[$2]++' | sort -n | cut -d' ' -f2
 }
 
 _vl_mount_medium() {
-    # Waits up to ~45 s for the labelled medium (slow USB controllers/hubs),
-    # then mounts the first candidate that holds the root image.
+    # Waits up to ~60 s for the medium (slow USB controllers/hubs), then
+    # mounts the first candidate (iso9660 only) that holds the root image.
     _vl_i=0
-    while [ "$_vl_i" -lt 90 ]; do
-        for _vl_dev in $(_vl_candidates); do
-            if mount -t iso9660 -o ro "$_vl_dev" "$1" 2>/dev/null || mount -o ro "$_vl_dev" "$1" 2>/dev/null; then
+    msg ":: Looking for the VeyraOS medium (label $VL_LABEL)..." >&2
+    while [ "$_vl_i" -lt 60 ]; do
+        _vl_list=$(_vl_sorted_candidates)
+        for _vl_dev in $_vl_list; do
+            if timeout 15 mount -t iso9660 -o ro "$_vl_dev" "$1" 2>/dev/null; then
                 if [ -f "$1/$VL_BASEDIR/x86_64/rootfs.sfs" ]; then
                     echo "$_vl_dev"
                     return 0
                 fi
-                umount "$1"
+                umount "$1" 2>/dev/null
             fi
         done
-        [ "$_vl_i" -eq 4 ] && msg ":: Waiting for the VeyraOS medium (label $VL_LABEL)..." >&2
-        sleep 0.5
+        if [ $((_vl_i % 5)) -eq 0 ]; then
+            msg ":: still looking ($_vl_i s); devices seen: $(echo $_vl_list | tr '\n' ' ')" >&2
+        fi
+        sleep 1
         _vl_i=$((_vl_i + 1))
     done
     return 1
@@ -106,7 +123,7 @@ veyra_mount_handler() {
         _vl_fail "no mountable medium with label '$VL_LABEL' containing $VL_BASEDIR/x86_64/rootfs.sfs was found"
         return 1
     }
-    msg ":: VeyraOS medium found at $_vl_dev"
+    msg ":: VeyraOS medium found at $_vl_dev; mounting the system image"
     _vl_img=$_vl_run/medium/$VL_BASEDIR/x86_64/rootfs.sfs
 
     if [ "$VL_VERIFY" = 1 ]; then
@@ -139,6 +156,7 @@ veyra_mount_handler() {
     fi
 
     mount -t squashfs -o ro,loop "$_vl_img" "$_vl_run/sfs" || { _vl_fail "cannot mount the root image"; return 1; }
+    msg ":: system image mounted; starting VeyraOS"
     mount -t tmpfs -o "size=$VL_COWSIZE,mode=0755" veyra-cow "$_vl_run/cow" || { _vl_fail "cannot create the writable layer"; return 1; }
     mkdir -p "$_vl_run/cow/upper" "$_vl_run/cow/work"
     mount -t overlay -o "lowerdir=$_vl_run/sfs,upperdir=$_vl_run/cow/upper,workdir=$_vl_run/cow/work" \

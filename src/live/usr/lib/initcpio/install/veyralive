@@ -10,6 +10,8 @@ build() {
     add_binary losetup
     add_binary stat
     add_binary sha512sum
+    add_binary timeout
+    add_binary sort
     add_runscript
 }
 
