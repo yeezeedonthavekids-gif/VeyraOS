@@ -37,6 +37,17 @@ if [[ -f $kb ]]; then
     fi
 fi
 
+# 2b. Machine id (no systemd-machine-id-setup on OpenRC) ------------------------
+if [[ ! -s /etc/machine-id ]]; then
+    if [[ -s /var/lib/dbus/machine-id ]]; then
+        cp /var/lib/dbus/machine-id /etc/machine-id
+    else
+        dbus-uuidgen > /etc/machine-id 2>/dev/null || tr -d '-' < /proc/sys/kernel/random/uuid > /etc/machine-id
+    fi
+    chmod 444 /etc/machine-id
+    log "machine id created"
+fi
+
 # 3. Clock: Windows keeps the hardware clock in local time ---------------------
 if command -v os-prober >/dev/null && os-prober 2>/dev/null | grep -qi windows; then
     sed -i 's/^clock=.*/clock="local"/' /etc/conf.d/hwclock 2>/dev/null || echo 'clock="local"' > /etc/conf.d/hwclock
