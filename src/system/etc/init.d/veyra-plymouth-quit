@@ -1,20 +1,54 @@
 #!/usr/bin/openrc-run
-# Closes the boot animation (Plymouth) when the graphical login starts.
-# On systemd distributions plymouth-quit.service does this; OpenRC has no
-# equivalent in the Artix repositories, and without it the splash stays on
-# screen over the login/desktop.
-description="Hand the screen from the boot animation to the login screen"
+# Runs right before the graphical login:
+#  1. waits until the GPU driver is fully initialised (NVIDIA's DRM device is
+#     created a few seconds after boot; starting the login screen earlier
+#     froze the screen on RTX 50-series cards in testing), then
+#  2. closes the boot animation (Plymouth) so it releases the display.
+# On systemd distributions plymouth-quit.service does part 2; OpenRC has no
+# equivalent in the Artix repositories.
+description="Wait for the graphics driver and hand the screen to the login screen"
 
 depend() {
-	after udev localmount
+	need udev
+	after udev-trigger udev-settle localmount modules
 	before sddm displaymanager xdm
 	keyword -docker -podman -lxc -openvz -prefix -systemd-nspawn -vserver -wsl
 }
 
+has_nvidia_gpu() {
+	local d
+	for d in /sys/bus/pci/devices/*; do
+		[ "$(cat "$d/vendor" 2>/dev/null)" = 0x10de ] || continue
+		case $(cat "$d/class" 2>/dev/null) in 0x0300*|0x0302*) return 0 ;; esac
+	done
+	return 1
+}
+
+nvidia_drm_ready() {
+	local c
+	[ -d /sys/module/nvidia_drm ] || return 1
+	for c in /sys/class/drm/card*/device/driver; do
+		case $(readlink -f "$c" 2>/dev/null) in *nvidia*) return 0 ;; esac
+	done
+	return 1
+}
+
 start() {
-	command -v plymouth >/dev/null 2>&1 || return 0
-	plymouth --ping 2>/dev/null || return 0
-	ebegin "Closing the boot animation"
-	plymouth quit --retain-splash
+	ebegin "Waiting for the graphics driver"
+	udevadm settle --timeout=20 2>/dev/null
+	if has_nvidia_gpu; then
+		modprobe -q nvidia_drm 2>/dev/null
+		# wait (max 20 s) until nvidia-drm has registered its DRM device
+		local i=0
+		while [ $i -lt 40 ] && ! nvidia_drm_ready; do
+			sleep 0.5; i=$((i + 1))
+		done
+		udevadm settle --timeout=10 2>/dev/null
+	fi
 	eend 0
+	if command -v plymouth >/dev/null 2>&1 && plymouth --ping 2>/dev/null; then
+		ebegin "Closing the boot animation"
+		plymouth quit
+		eend 0
+	fi
 }
