@@ -3,7 +3,8 @@
 
 build() {
     local m
-    for m in loop squashfs overlay isofs cdrom sr_mod udf vfat nls_cp437 nls_iso8859_1 nls_utf8; do
+    # dm_mod: Ventoy exposes the ISO through device-mapper (/dev/mapper/ventoy)
+    for m in loop squashfs overlay isofs cdrom sr_mod udf vfat exfat nls_cp437 nls_iso8859_1 nls_utf8 dm_mod; do
         add_module "${m}?"
     done
     add_binary blkid

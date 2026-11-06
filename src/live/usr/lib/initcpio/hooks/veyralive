@@ -114,7 +114,7 @@ veyra_mount_handler() {
     _vl_run=/run/veyra
     _vl_img=
 
-    for _vl_m in loop squashfs overlay isofs; do
+    for _vl_m in loop squashfs overlay isofs dm_mod; do
         modprobe -q "$_vl_m" 2>/dev/null
     done
     mkdir -p "$_vl_run/medium" "$_vl_run/sfs" "$_vl_run/cow"
