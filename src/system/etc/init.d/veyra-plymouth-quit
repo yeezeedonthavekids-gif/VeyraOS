@@ -1,0 +1,20 @@
+#!/usr/bin/openrc-run
+# Closes the boot animation (Plymouth) when the graphical login starts.
+# On systemd distributions plymouth-quit.service does this; OpenRC has no
+# equivalent in the Artix repositories, and without it the splash stays on
+# screen over the login/desktop.
+description="Hand the screen from the boot animation to the login screen"
+
+depend() {
+	after udev localmount
+	before sddm displaymanager xdm
+	keyword -docker -podman -lxc -openvz -prefix -systemd-nspawn -vserver -wsl
+}
+
+start() {
+	command -v plymouth >/dev/null 2>&1 || return 0
+	plymouth --ping 2>/dev/null || return 0
+	ebegin "Closing the boot animation"
+	plymouth quit --retain-splash
+	eend 0
+}

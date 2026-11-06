@@ -82,6 +82,7 @@ enable default bluetoothd
 enable default cronie
 for s in chronyd openntpd ntpd; do [[ -e /etc/init.d/$s ]] && { enable default "$s"; break; }; done
 enable default veyra-live
+enable default veyra-plymouth-quit
 enable default veyra-firstboot
 
 # Display manager: Artix ships either a per-DM service or the generic one.
