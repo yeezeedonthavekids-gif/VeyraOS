@@ -21,4 +21,7 @@ setkey GRUB_DISTRIBUTOR VeyraOS
 # Not "saved": GRUB cannot write its environment block on btrfs (the
 # default filesystem), which would print an error at every boot.
 setkey GRUB_DEFAULT 0
+# The main kernel is the first (default) entry; the LTS kernel stays in
+# "Advanced options" as a fallback.
+[[ -f /boot/vmlinuz-linux ]] && setkey GRUB_TOP_LEVEL /boot/vmlinuz-linux
 exit 0
