@@ -49,16 +49,19 @@ if [[ ! -s /etc/machine-id ]]; then
 fi
 
 # 2c. Boot files on btrfs: store uncompressed so GRUB can always read them -----
-# (kernels unpacked by the installer were compressed by the btrfs mount option;
-#  GRUB failed with "premature end of file" on real hardware)
+# GRUB failed with "premature end of file" on zstd-compressed kernels (real
+# hardware). Mark /boot "no compression" and rewrite the files as REAL copies:
+# a plain cp on btrfs reflinks the old, still-compressed extents.
 if [[ $(stat -f -c %T /boot 2>/dev/null) == btrfs ]]; then
+    chattr +m /boot 2>/dev/null || true
     btrfs property set /boot compression none 2>/dev/null || true
     for k in /usr/lib/modules/*/; do
         [[ -f $k/vmlinuz && -f $k/pkgbase ]] || continue
-        cp -f "$k/vmlinuz" "/boot/vmlinuz-$(cat "$k/pkgbase")"
+        cp --reflink=never -f "$k/vmlinuz" "/boot/vmlinuz-$(cat "$k/pkgbase")"
     done
-    for u in amd-ucode.img intel-ucode.img; do
-        [[ -f /boot/$u ]] && cp -f "/boot/$u" "/boot/$u.tmp" && mv -f "/boot/$u.tmp" "/boot/$u"
+    for f in /boot/initramfs-*.img /boot/*-ucode.img; do
+        [[ -f $f ]] || continue
+        cp --reflink=never "$f" "$f.new" && mv -f "$f.new" "$f"
     done
     sync
     log "boot files stored uncompressed for GRUB"
