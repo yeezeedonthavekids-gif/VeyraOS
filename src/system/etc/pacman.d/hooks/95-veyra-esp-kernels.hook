@@ -1,0 +1,15 @@
+[Trigger]
+Type = Path
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Target = usr/lib/modules/*/vmlinuz
+Target = usr/lib/initcpio/*
+Target = usr/lib/firmware/*
+Target = usr/src/*/dkms.conf
+Target = boot/*-ucode.img
+
+[Action]
+Description = Updating the kernels on the EFI partition...
+When = PostTransaction
+Exec = /usr/lib/veyra/esp-kernels

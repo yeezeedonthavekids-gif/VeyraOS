@@ -25,5 +25,5 @@ package() {
     find "$pkgdir" -name .keep -delete
     chmod 750 "$pkgdir/etc/sudoers.d"
     chmod 440 "$pkgdir/etc/sudoers.d/00-veyra"
-    chmod 755 "$pkgdir"/etc/init.d/* "$pkgdir"/usr/bin/* "$pkgdir"/usr/lib/veyra/*
+    chmod 755 "$pkgdir"/etc/grub.d/* "$pkgdir"/etc/init.d/* "$pkgdir"/usr/bin/* "$pkgdir"/usr/lib/veyra/*
 }

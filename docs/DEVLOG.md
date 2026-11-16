@@ -130,3 +130,20 @@ component with the real tools that *are* reachable:
 4. **Benchmarks** with `tools/bench-idle.sh` once installed on real hardware.
 5. Nice-to-have: a signed VeyraOS package repository so the veyra-* packages
    update with the system; AppArmor as an option.
+
+## 2026-11-16 — installed system: "premature end of file" in GRUB
+
+* Symptom on the reference PC (GRUB 2.16, kernel 7.2, btrfs `compress=zstd:1`):
+  the installed system's GRUB menu appears, but both kernels fail with
+  "premature end of file /@/boot/vmlinuz-…". File sizes on disk are correct.
+* Not reproduced here: GRUB 2.12's driver (`grub-fstest`) reads zstd-compressed
+  kernels from btrfs written by kernel 6.18 byte-exactly. Artix's GRUB could
+  not be fetched in the sandbox, so the root cause is **not confirmed**.
+* Fix that does not depend on the cause: kernels and initramfs are copied to
+  the EFI partition (`esp-kernels`, pacman hook) and `/etc/grub.d/09_veyra_esp`
+  adds default boot entries that load them from FAT. The installer enables it
+  when the EFI partition has room; `/boot` is still stored uncompressed.
+* Tested: generated entries boot in QEMU/OVMF (kernel + 62 MB initramfs loaded
+  from the EFI partition, root on compressed btrfs subvolume `@`).
+  **Not tested here:** `tools/repair-boot.sh` end-to-end (the sandbox kernel
+  cannot mount FAT) and a fresh installation with the new installer step.

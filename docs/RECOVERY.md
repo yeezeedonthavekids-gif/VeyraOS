@@ -101,6 +101,20 @@ exit
 sudo umount -R /mnt && sudo reboot
 ```
 
+## GRUB says "premature end of file /@/boot/vmlinuz-…"
+
+GRUB could not read the kernel from the btrfs root. Boot the live USB, open a
+terminal and run:
+
+    curl -LO https://raw.githubusercontent.com/yeezeedonthavekids-gif/veyraos/claude/veyraos-build-8mr4li/tools/repair-boot.sh
+    sudo bash repair-boot.sh
+
+It stores `/boot` uncompressed and puts a copy of the kernels on the EFI
+partition (`/boot/efi/veyra`), which GRUB loads instead. A pacman hook
+(`/usr/lib/veyra/esp-kernels`) keeps the copy current. Installations made
+with builds after 2026-11-16 are set up this way from the start when the EFI
+partition has room.
+
 ## Windows missing from the boot menu
 
 ```bash

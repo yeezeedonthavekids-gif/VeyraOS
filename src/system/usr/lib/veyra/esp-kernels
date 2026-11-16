@@ -1,0 +1,50 @@
+#!/bin/bash
+# Keeps a copy of the kernels and initramfs images on the EFI partition.
+#
+# GRUB reads FAT reliably; reading large kernel images from a btrfs root
+# failed on real hardware ("premature end of file"). When this mode is on
+# (/boot/efi/veyra exists), /etc/grub.d/09_veyra_esp adds boot entries that
+# load the kernel from the EFI partition, and a pacman hook re-runs this
+# script after every kernel/initramfs change.
+#
+#   esp-kernels enable   turn the mode on if the EFI partition is big enough
+#   esp-kernels          refresh the copies (no-op while the mode is off)
+set -uo pipefail
+ESP=${VEYRA_ESP:-/boot/efi}
+BOOT=${VEYRA_BOOT:-/boot}
+D=$ESP/veyra
+log() { echo "esp-kernels: $*"; }
+
+size_mb() { local t=0 f; for f in "$@"; do [[ -f $f ]] && t=$(( t + $(stat -c %s "$f") / 1048576 + 1 )); done; echo "$t"; }
+free_mb() { df -m --output=avail "$ESP" | tail -1 | tr -d ' '; }
+
+if [[ ${1:-} == enable ]]; then
+    if [[ $(stat -f -c %T "$ESP" 2>/dev/null) != msdos ]] || ! mountpoint -q "$ESP"; then
+        log "no EFI partition mounted at $ESP; kernels stay in $BOOT"; exit 0
+    fi
+    rm -rf "$D"
+    need=$(size_mb "$BOOT/vmlinuz-linux" "$BOOT/initramfs-linux.img" "$BOOT"/*-ucode.img)
+    if (( need + 16 > $(free_mb) )); then
+        log "EFI partition too small (${need} MB needed, $(free_mb) MB free); kernels stay in $BOOT"; exit 0
+    fi
+    mkdir -p "$D"
+fi
+[[ -d $D ]] || exit 0
+
+rm -f "$D"/*
+for f in "$BOOT"/*-ucode.img; do [[ -f $f ]] && cp "$f" "$D/"; done
+# Main kernel first; further kernels only while they fit.
+for k in "$BOOT/vmlinuz-linux" "$BOOT"/vmlinuz-*; do
+    [[ -f $k ]] || continue
+    n=${k##*/vmlinuz-}
+    [[ -f $D/vmlinuz-$n ]] && continue
+    i=$BOOT/initramfs-$n.img
+    [[ -f $i ]] || continue
+    if (( $(size_mb "$k" "$i") + 8 > $(free_mb) )); then
+        log "no room for the '$n' kernel on the EFI partition (skipped)"; continue
+    fi
+    if cp "$k" "$D/" && cp "$i" "$D/"; then log "copied $n"
+    else rm -f "$D/vmlinuz-$n" "$D/initramfs-$n.img"; log "copy of '$n' failed"; fi
+done
+sync
+exit 0
